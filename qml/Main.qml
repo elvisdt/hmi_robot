@@ -38,10 +38,11 @@ ApplicationWindow {
         RowLayout {
             anchors.fill: parent
             spacing: 10
-
+            
             Label {
+                padding: 10
                 text: "Interfaz de control"
-                font.pixelSize: 22
+                font.pixelSize: 20
                 font.bold: true
                 font.family: "SF Pro Display"
                 color: "#0f172a"
@@ -51,7 +52,7 @@ ApplicationWindow {
             Label {
                 text: "Robot SCARA"
                 color: mutedText
-                font.pixelSize: 14
+                font.pixelSize: 12
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -85,6 +86,7 @@ ApplicationWindow {
         anchors.margins: 16
         color: "transparent"
 
+        
         SplitView {
             id: mainSplit
             anchors.fill: parent
@@ -96,113 +98,49 @@ ApplicationWindow {
                 color: "#dfe4ee"
             }
 
-            ControlsPanel {
-                id: controlsPanel
-                SplitView.preferredWidth: 360   // ~1 part
-                SplitView.minimumWidth: 320
-                SplitView.maximumWidth: 420
-                Layout.fillHeight: true
-                accentColor: app.accentColor
-                onDxfSelected: function(fileUrl) { loadDxfFile(fileUrl) }
-            }
 
+            // ================= CENTRO + DERECHA (contenedor) ==================
             Rectangle {
                 color: "transparent"
-                SplitView.fillWidth: true      // ~4 parts
-                SplitView.preferredWidth: 1040
+                SplitView.preferredWidth: 8      // ← 2 partes + 2 partes
+                SplitView.fillWidth: true
 
-                ColumnLayout {
+                RowLayout {
                     anchors.fill: parent
                     spacing: 14
 
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.fillWidth: true
+                    
+                    ControlsPanel {
+                        id: controlsPanel
+                        objectName: "ControlsPanel"
+                        SplitView.preferredWidth: 2
                         Layout.fillHeight: true
-                        spacing: 14
-
-                        Viewer2D {
-                            id: viewer2d
-                            objectName: "viewer2d"
-                            Layout.fillWidth: true   // ~2 parts
-                            Layout.fillHeight: true
-                            Layout.minimumWidth: 400
-                            Layout.minimumHeight: 360
-                            Layout.preferredWidth: 520
-                            Layout.preferredHeight: 520
-                            Layout.maximumWidth: 600
-                            accentColor: app.accentColor
-                        }
-
-                        RobotView {
-                            id: robotView
-                            objectName: "robotView"
-                            Layout.fillWidth: true   // ~2 parts
-                            Layout.fillHeight: true
-                            Layout.minimumWidth: 400
-                            Layout.minimumHeight: 360
-                            Layout.preferredWidth: 520
-                            Layout.preferredHeight: 520
-                            Layout.maximumWidth: 700
-                            accentColor: app.accentColor
-                        }
+                        accentColor: app.accentColor
+                        onDxfSelected: function(fileUrl) { loadDxfFile(fileUrl) }
                     }
 
-                    RowLayout {
-                        spacing: 10
-                        Layout.alignment: Qt.AlignHCenter
+                    // ======================== VISTA 2D ========================
+                    Viewer2D {
+                        id: viewer2d
+                        objectName: "viewer2d"
+                        Layout.fillHeight: true
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 64
-                        Layout.minimumWidth: 360
+                        Layout.preferredWidth: 3    // ← 2 partes
+                        Layout.minimumWidth: 350
+                        Layout.minimumHeight: 360
+                        accentColor: app.accentColor
+                    }
 
-                        Button {
-                            id: playButton
-                            text: "Play"
-                            Layout.preferredWidth: 110
-                            background: Rectangle {
-                                radius: 14
-                                color: accentColor
-                            }
-                            contentItem: Text {
-                                text: playButton.text
-                                font: playButton.font
-                                color: "#ffffff"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                        }
-                        Button {
-                            id: pauseButton
-                            text: "Pausa"
-                            Layout.preferredWidth: 110
-                            background: Rectangle {
-                                radius: 14
-                                color: "#dfe3ec"
-                            }
-                            contentItem: Text {
-                                text: pauseButton.text
-                                font: pauseButton.font
-                                color: "#0f172a"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                        }
-                        Button {
-                            id: stopButton
-                            text: "Stop"
-                            Layout.preferredWidth: 110
-                            background: Rectangle {
-                                radius: 14
-                                color: "#f4c7c3"
-                            }
-                            contentItem: Text {
-                                text: stopButton.text
-                                font: stopButton.font
-                                color: "#0f172a"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                        }
+                    // ======================== VISTA 3D ========================
+                    RobotView {
+                        id: robotView
+                        objectName: "robotView"
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 3    // ← 2 partes
+                        Layout.minimumWidth: 350
+                        Layout.minimumHeight: 360
+                        accentColor: app.accentColor
                     }
                 }
             }

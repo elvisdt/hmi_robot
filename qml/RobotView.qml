@@ -119,39 +119,31 @@ Item {
 
                     Node {
                         id: sceneRoot
-
-                        
-
-                    Robot {
-                        Behavior on rotation1 {
-                            SmoothedAnimation {
-                                velocity: 60
+                        Robot {
+                            Behavior on rotation1 {
+                                SmoothedAnimation {
+                                    velocity: 60
+                                }
                             }
-                        }
-                        
-                        Behavior on movement1 {
-                            SmoothedAnimation {
-                                velocity: 60
+                            
+                            Behavior on movement1 {
+                                SmoothedAnimation {
+                                    velocity: 60
+                                }
                             }
-                        }
 
-                        Behavior on rotation2 {
-                            SmoothedAnimation {
-                                velocity: 80
+                            Behavior on rotation2 {
+                                SmoothedAnimation {
+                                    velocity: 80
+                                }
                             }
-                        }
 
-                        
-                        
-                        id: robot 
-                        rotation1: angrotacion1
-                        movement1: movdistance1
-                        rotation2: angrotacion2
+                            id: robot 
+                            rotation1: angrotacion1
+                            movement1: movdistance1
+                            rotation2: angrotacion2
+                        }
                     }
-                }
-
-                    // Nota: Se retiró el controlador de órbita para evitar propiedades no soportadas en esta versión de Qt.
-                    // Si quieres control de cámara interactivo, podemos agregar una implementación compatible según tu Qt.
                 }
             }
         }
