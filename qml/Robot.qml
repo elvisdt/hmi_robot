@@ -4,8 +4,8 @@ Node {
     id: robot
 
     // Grados de libertad básicos
-    property real rotation1: 0
     property real movement1: 0
+    property real rotation1: 0
     property real rotation2: 0
 
     // Grupo base
@@ -14,11 +14,12 @@ Node {
         eulerRotation.y: 150
 
         // Base inferior
-        Model { source: "../assets/meshes/base_p1_mesh.mesh"; materials: [node68_68_68_material, node255_0_0_material, node68_68_68_material] }
-        Model { source: "../assets/meshes/base_b1_mesh.mesh"; materials: [_steel_Satin_material] }
-        Model { source: "../assets/meshes/base_b2_mesh.mesh"; materials: [node255_0_0_material, node255_255_255_material] }
-        Model { source: "../assets/meshes/base_b20_mesh.mesh"; materials: [_steel_Satin_material] }
-        Model { source: "../assets/meshes/base_b10_mesh.mesh"; materials: [node0_255_0_material, node255_255_255_material] }
+        Model { source: "../assets/meshes/table_mesh.mesh"; materials: [_material_steel] }
+        Model { source: "../assets/meshes/base_01_mesh.mesh"; materials: [_material_acero01, _material_red_plastic, _material_acero01] }
+        Model { source: "../assets/meshes/btn_01_00_mesh.mesh"; materials: [_steel_Satin_material] }
+        Model { source: "../assets/meshes/btn_01_01_mesh.mesh"; materials: [_material_red_plastic, _color_bleanco] }
+        Model { source: "../assets/meshes/btn_02_00_mesh.mesh"; materials: [_steel_Satin_material] }
+        Model { source: "../assets/meshes/btn_02_01_mesh.mesh"; materials: [_material_green_plastic, _color_bleanco] }
 
         // Base superior + primer brazo
         Node {
@@ -26,8 +27,10 @@ Node {
             eulerRotation.y: robot.rotation1
 
             Model {
-                source: "../assets/meshes/base_s1_mesh.mesh"
-                materials: [node255_0_0_material]
+                source: "../assets/meshes/rotor_01_mesh.mesh"
+                materials: [
+                    _material_acero01
+                ]
             }
 
             Node {
@@ -36,7 +39,7 @@ Node {
 
                 Model {
                     source: "../assets/meshes/brazo_01_mesh.mesh"
-                    materials: [node68_68_68_material, node229_234_237_material, node68_68_68_material, node229_234_237_material]
+                    materials: [_material_acero01, _material_acero02, _material_acero01, _material_acero02]
                 }
 
                 Node {
@@ -46,15 +49,33 @@ Node {
                     Model {
                         source: "../assets/meshes/brazo_02_mesh.mesh"
                         materials: [
-                            node68_68_68_material,
-                            node255_255_255_material,
-                            node68_68_68_material,
-                            node255_255_255_material,
-                            node68_68_68_material,
-                            node255_255_255_material,
-                            node68_68_68_material
+                            _material_acero01,
+                            _material_null,
+                            _material_acero01,
+                            _material_null,
+                            _material_acero01,
+                            _material_null,
+                            _material_acero01
                         ]
                     }
+
+                    Model {
+                        id: boquilla
+                        source: "../assets/meshes/boquilla_mesh.mesh"
+                        materials: [
+                            _color_bleanco,
+                            _material_red_full,
+                            _color_bleanco,
+                            _material_red_full,
+                            _color_bleanco,
+                            node73_169_84_material,
+                            _color_bleanco,
+                            node2_61_210_material,
+                            _color_bleanco
+                        ]
+                    }
+                     
+
                 }
             }
         }
@@ -63,11 +84,42 @@ Node {
     // Materiales
     Node {
         id: __materialLibrary__
-        PrincipledMaterial { id: node255_0_0_material; baseColor: "#ff0000" }
-        PrincipledMaterial { id: node68_68_68_material; baseColor: "#444444" }
-        PrincipledMaterial { id: node255_255_255_material; baseColor: "#ffffff" }
-        PrincipledMaterial { id: node0_255_0_material; baseColor: "#00ff00" }
-        PrincipledMaterial { id: node229_234_237_material; baseColor: "#e5eaed" }
+        PrincipledMaterial { id: _material_red_plastic; baseColor: "#ffff0000" }
+        PrincipledMaterial { id: _material_acero01; baseColor: "#ff444444" }
+        PrincipledMaterial { id: _color_bleanco; baseColor: "#ffffff" }
+        PrincipledMaterial { id: _material_green_plastic; baseColor: "#ff00ff00" }
+        PrincipledMaterial { id: _material_acero02; baseColor: "#ffe5eaed"}
+        PrincipledMaterial {id: _color_boquilla; baseColor: "#ff023dd2"; indexOfRefraction: 1}
         PrincipledMaterial { id: _steel_Satin_material }
+
+
+        PrincipledMaterial {
+            id: _material_steel
+            baseColor: "#ffa0a0a0"
+            indexOfRefraction: 1
+        }
+
+        PrincipledMaterial {
+            id: _material_red_full
+            baseColor: "#ffb11919"
+            indexOfRefraction: 1
+        }
+        PrincipledMaterial {
+            id: node73_169_84_material
+            objectName: "73,169,84"
+            baseColor: "#ff49a954"
+            indexOfRefraction: 1
+        }
+        PrincipledMaterial {
+            id: node2_61_210_material
+            objectName: "2,61,210"
+            baseColor: "#ff023dd2"
+            indexOfRefraction: 1
+        }
+
+        PrincipledMaterial {
+            id: _material_null
+            indexOfRefraction: 1
+        }
     }
 }

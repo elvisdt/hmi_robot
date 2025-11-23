@@ -11,6 +11,11 @@ class Backend(QObject):
     def __init__(self):
         super().__init__()
         self.chord_tol = 1.5  # mm equivalent for curve flattening
+        self.world_x_min = 0.0
+        self.world_x_max = 600.0
+        self.world_y_min = -600.0
+        self.world_y_max = 600.0
+        self.margin_ratio = 0.08  # 8% del lado menor para no tocar bordes
 
     def _entity_points(self, entity, tol):
         """Convert supported entities to a list of (x, y) points."""
@@ -71,21 +76,17 @@ class Backend(QObject):
             self.statusMessage.emit("DXF sin geometría soportada (LINE/LWPOLYLINE/CIRCLE/ARC/ELLIPSE/SPLINE).")
             return
 
-        # Aggregate all points for scaling
-        xs = [x for poly in all_polys for (x, _) in poly]
-        ys = [y for poly in all_polys for (_, y) in poly]
-        min_x, max_x = min(xs), max(xs)
-        min_y, max_y = min(ys), max(ys)
-        range_x = max(max_x - min_x, 1e-6)
-        range_y = max(max_y - min_y, 1e-6)
+        # Escala fija al espacio de trabajo definido (mm)
+        range_x = max(self.world_x_max - self.world_x_min, 1e-6)
+        range_y = max(self.world_y_max - self.world_y_min, 1e-6)
         target_w = viewport_w if viewport_w and viewport_w > 0 else 520
         target_h = viewport_h if viewport_h and viewport_h > 0 else 520
-        margin = 0.08 * min(target_w, target_h)  # 8% margin
-        scale = min((target_w - 2 * margin) / range_x, (target_h - 2 * margin) / range_y)
-        inner_w = (target_w - 2 * margin)
-        inner_h = (target_h - 2 * margin)
-        offset_x = margin + max(0, (inner_w - range_x * scale) / 2)
-        offset_y = margin + max(0, (inner_h - range_y * scale) / 2)
+        margin = self.margin_ratio * min(target_w, target_h)
+        inner_w = target_w - 2 * margin
+        inner_h = target_h - 2 * margin
+        scale = min(inner_w / range_x, inner_h / range_y)
+        extra_x = max(0.0, (inner_w - range_x * scale) / 2)
+        extra_y = max(0.0, (inner_h - range_y * scale) / 2)
 
         # Scale each poly separately and insert breaks between them
         qpoints = []
@@ -93,8 +94,8 @@ class Backend(QObject):
             if idx > 0:
                 qpoints.append({"break": True})
             for x, y in poly:
-                qx = offset_x + (x - min_x) * scale
-                qy = offset_y + (max_y - y) * scale  # invert Y to avoid mirror
+                qx = margin + extra_x + (x - self.world_x_min) * scale
+                qy = margin + extra_y + (self.world_y_max - y) * scale  # invert Y to avoid mirror
                 qpoints.append({"x": qx, "y": qy})
 
         self.pointsReady.emit(qpoints)

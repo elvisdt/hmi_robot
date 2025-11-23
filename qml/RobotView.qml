@@ -10,9 +10,9 @@ Item {
     height: 480
     property color accentColor: "#0a84ff"
     // Ajustes de cámara (posiciones inspiradas en la demo que sí funcionó)
-    property real camDistance: 150
-    property real camHeight: 50
-    property real camYaw: 85
+    property real camDistance: 200
+    property real camHeight: 80
+    property real camYaw: 80
     property real camTilt: -20
 
     property real angrotacion1: 0
@@ -92,13 +92,28 @@ Item {
                     Node {
                         id: camRig
                         eulerRotation.y: root.camYaw
+                        // PerspectiveCamera {
+                        //     id: camera
+                        //     position: Qt.vector3d(-80, root.camHeight, root.camDistance)
+                        //     eulerRotation.x: root.camTilt
+                        //     clipFar: 8000
+                        //     clipNear: 5
+                        // }
+
                         PerspectiveCamera {
-                            id: camera
-                            position: Qt.vector3d(0, root.camHeight, root.camDistance)
-                            eulerRotation.x: root.camTilt
-                            clipFar: 8000
-                            clipNear: 5
-                        }
+                                id: camera
+
+                                // Vista desde arriba-derecha
+                                position: Qt.vector3d(100, 80, 150)
+
+                                // Apunta hacia el robot
+                                eulerRotation.x: -30    // inclinar hacia abajo
+                                eulerRotation.y: 45     // girar desde la esquina
+
+                                clipNear: 5
+                                clipFar: 10000
+                            }
+
 
                         // PerspectiveCamera {
                         //     id: camera
@@ -113,8 +128,8 @@ Item {
                     DirectionalLight { 
                             eulerRotation.x: -60;
                             eulerRotation.y: 90;
-                            brightness: 4; 
-                            castsShadow: false 
+                            brightness: 2; 
+                            castsShadow: true 
                         }
 
                     Node {
