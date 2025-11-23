@@ -1,0 +1,7 @@
+module component
+singleton Theme 1.0 Theme.qml
+IOSSlider 1.0 IOSSlider.qml
+IOSwitch 1.0 IOSwitch.qml
+UnixSpinBox 1.0 UnixSpinBox.qml
+CustomCheckBox 1.0 CustomCheckBox.qml
+View2DCanvas 1.0 View2DCanvas.qml

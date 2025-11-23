@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick3D
+import component 1.0
 
 ApplicationWindow {
     id: app
@@ -10,12 +11,31 @@ ApplicationWindow {
     width: 1200
     height: 800
     title: "Interfaz de control del Robot"
-    color: "#f5f7fb"
+    property bool darkMode: false
+    property var basePalette: ({
+        windowBg: "#f5f7fb",
+        cardBg: "#ffffff",
+        stroke: "#e4e8f0",
+        text: "#0f172a",
+        muted: "#5f6b80",
+        accent: "#0a84ff",
+        panelBg: "#f8fafc",
+        panelBorder: "#e5e7eb",
+        canvasBg: "#f9fafc",
+        grid: "#e7ebf3",
+        label: "#9ca3af"
+    })
+    property var palette: {
+        var p = darkMode ? (Theme ? Theme.dark : null) : (Theme ? Theme.light : null)
+        return p ? p : basePalette
+    }
+    color: palette.windowBg
 
-    property color accentColor: "#0a84ff"
-    property color cardColor: "#ffffff"
-    property color mutedText: "#5f6b80"
-    property color strokeColor: "#e4e8f0"
+    property color accentColor: palette.accent || basePalette.accent
+    property color cardColor: palette.cardBg || basePalette.cardBg
+    property color mutedText: palette.muted || basePalette.muted
+    property color strokeColor: palette.stroke || basePalette.stroke
+    property color textColor: palette.text || basePalette.text
 
     // Recibe señales desde backend Python para poblar vistas
     Connections {
@@ -32,7 +52,7 @@ ApplicationWindow {
         contentHeight: 68
         padding: 12
         background: Rectangle {
-            color: "#ffffff"
+            color: cardColor
             border.color: strokeColor
         }
         RowLayout {
@@ -45,7 +65,7 @@ ApplicationWindow {
                 font.pixelSize: 20
                 font.bold: true
                 font.family: "SF Pro Display"
-                color: "#0f172a"
+                color: textColor
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -57,6 +77,17 @@ ApplicationWindow {
             }
 
             Item { Layout.fillWidth: true }
+
+            Label {
+                text: darkMode ? "Modo oscuro" : "Modo claro"
+                color: mutedText
+                font.pixelSize: 12
+                Layout.alignment: Qt.AlignVCenter
+            }
+            IOSwitch {
+                checked: darkMode
+                onCheckedChanged: app.darkMode = checked
+            }
 
             // RoundButton {
             //     id: addButton
@@ -116,6 +147,7 @@ ApplicationWindow {
                         SplitView.preferredWidth: 2
                         Layout.fillHeight: true
                         accentColor: app.accentColor
+                        palette: app.palette
                         onDxfSelected: function(fileUrl) { loadDxfFile(fileUrl) }
                     }
 
@@ -129,6 +161,7 @@ ApplicationWindow {
                         Layout.minimumWidth: 350
                         Layout.minimumHeight: 360
                         accentColor: app.accentColor
+                        palette: app.palette
                     }
 
                     // ======================== VISTA 3D ========================

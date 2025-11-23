@@ -15,6 +15,7 @@ def main():
 
     app = QApplication(sys.argv)
     engine = QQmlApplicationEngine()
+    engine.addImportPath(str(HERE / "qml"))
 
     backend = Backend()
     engine.rootContext().setContextProperty("backend", backend)
