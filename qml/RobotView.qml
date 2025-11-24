@@ -12,15 +12,24 @@ Item {
     property color accentColor: "#0a84ff"
     property var palette: ({})
     // Ajustes de camara
-    property real camDistance: 220
-    property real camHeight: 70      // usado como altura objetivo (centro de mirada)
-    property real camYaw: 120
-    property real camTilt: 3
-    property real camFov: 38
-    property real camTargetX: 75      // desplaza el objetivo en X
+    // property real camDistance: 220
+    // property real camHeight: 70      // usado como altura objetivo (centro de mirada)
+    // property real camYaw: 120
+    // property real camTilt: 3
+    // property real camFov: 38
+    // property real camTargetX: 75      // desplaza el objetivo en X
 
+
+    property real camDistance: 2500
+    property real camHeight: 250      
+    property real camYaw: -45
+    property real camTilt: 20
+    property real camFov: 20
+    property real camTargetX: -800      
+
+
+    property real movdistance1: 4
     property real angrotacion1: 0
-    property real movdistance1: 0
     property real angrotacion2: 0
 
     property color cardColor: palette.cardBg || "#ffffff"
@@ -30,6 +39,10 @@ Item {
     property color panelBg: palette.panelBg || "#f8fafc"
     property color panelBorder: palette.panelBorder || "#e5e7eb"
     property color canvasBg: palette.canvasBg || "#f9fafc"
+    property bool showMarkers: true
+    property var markers: []          // [{x:..., y:..., z:..., color: "#rrggbb"}]
+    property real markerSize: 6
+    property color markerColor: palette.accent || accentColor
 
     function updateCamera() {
         var yawRad = root.camYaw * Math.PI / 180
@@ -67,6 +80,7 @@ Item {
             anchors.margins: 12
             spacing: 10
 
+            // 1: hedear title 
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
@@ -104,22 +118,130 @@ Item {
                 }
             }
 
-            Item {
+            // 2: matrix and slider section
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+                // future matrix
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 150
+                    radius: 10
+                    color: panelBg
+                    border.color: panelBorder
+                    border.width: 1
+                }
+
+                // slider secction
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 150
+                    radius: 10
+                    color: panelBg
+                    border.color: panelBorder
+                    border.width: 1
+
+                    // columnas title
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins:5
+                        spacing: 5
+
+                        // title
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Mover robot"
+                                color: textColor
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: "Control manual"
+                                color: mutedColor
+                                font.pixelSize: 10
+                            }
+                        }
+
+                        // desplazamiento 1
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 5
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label { text: "D1:"; color: mutedColor; font.pixelSize: 11;  Layout.preferredWidth: 16}
+                                Label { text: Math.round(movSlider.value) + " mm"; color: textColor; font.pixelSize: 12; Layout.preferredWidth: 40 }
+                                Item { Layout.fillWidth: true }
+                                IOSSlider{
+                                    id: movSlider
+                                    minValue: 0
+                                    maxValue: 40
+                                    step: 1
+                                    value: movdistance1 * 10   // usamos escala x10 para permitir 0.1 mm
+                                    onMoved: movdistance1 = value / 10
+                                    Layout.preferredWidth: 100 
+                                }
+                            }
+    
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label { text: "R1:"; color: mutedColor; font.pixelSize: 11; Layout.preferredWidth: 16}
+                                Label { text: Math.round(angrotacion1) + "°"; color: textColor; font.pixelSize: 11; Layout.preferredWidth: 30 }
+                                Item { Layout.fillWidth: true }
+                                IOSSlider{
+                                    id: rot1Slider
+                                    minValue: -90
+                                    maxValue: 90
+                                    sliderValue: 1
+                                    value: angrotacion1
+                                    onMoved: angrotacion1 = value
+                                    Layout.preferredWidth: 100
+                                }
+                            }
+
+
+
+                            
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label { text: "R2:"; color: mutedColor; font.pixelSize: 11;Layout.preferredWidth: 16 }
+                                Label { text: Math.round(angrotacion2) + "°"; color: textColor; font.pixelSize: 12; Layout.preferredWidth: 30 }
+                                Item { Layout.fillWidth: true }
+                                IOSSlider{
+                                    id: rot2Slider
+                                    minValue: -150
+                                    maxValue: 150
+                                    sliderValue: 1
+                                    value: angrotacion2
+                                    onMoved: angrotacion2 = value
+                                    Layout.preferredWidth: 100
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
+                
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: canvasBg
-                }
+                // Layout.preferredHeight: 300
+                radius: 12
+                color: panelBg
+                border.color: panelBorder
+                border.width: 1
 
                 View3D {
                     anchors.fill: parent
 
                     anchors.margins: 6
                     environment: SceneEnvironment {
-                        clearColor: "#f6f8fc"
+                        clearColor: canvasBg
                         backgroundMode: SceneEnvironment.Color
                         antialiasingMode: SceneEnvironment.MSAA
                         antialiasingQuality: SceneEnvironment.Medium
@@ -130,7 +252,7 @@ Item {
                             id: camera
                             position: Qt.vector3d(0, root.camHeight, root.camDistance)
                             clipNear: 5
-                            clipFar: 10000
+                            clipFar: 20000
                             fieldOfView: root.camFov
                         }
                     }
@@ -168,6 +290,33 @@ Item {
                             movement1: movdistance1
                             rotation2: angrotacion2
                         }
+
+                        // // Marcadores de referencia en el espacio del robot
+                        // Node {
+                        //     id: markersRoot
+
+                        //     Instantiator {
+                        //         model: showMarkers ? markers : []
+                        //         delegate: Model {
+                        //             readonly property var m: modelData || {}
+                        //             source: "#Sphere"
+                        //             scale: Qt.vector3d(markerSize, markerSize, markerSize)
+                        //             position: Qt.vector3d(m.x || 0, m.y || 0, m.z || 0)
+                        //             materials: [
+                        //                 PrincipledMaterial {
+                        //                     baseColor: m.color || markerColor
+                        //                     metalness: 0.05
+                        //                     roughness: 0.3
+                        //                 }
+                        //             ]
+                        //         }
+                        //         onObjectAdded: function(obj) { obj.parent = markersRoot }
+                        //         onObjectRemoved: function(obj) {
+                        //             if (obj && obj.parent === markersRoot)
+                        //                 obj.parent = null
+                        //         }
+                        //     }
+                        // }
                     }
                 }
             }
@@ -197,7 +346,7 @@ Item {
                         ColumnLayout {
                             width: 130
                             spacing: 3
-                            Label { text: "Yaw (deg)"; color: "#475569"; font.pixelSize: 11 }
+                            Label { text: "Yaw (deg)"; color: mutedColor; font.pixelSize: 11 }
                             UnixSpinBox {
                                 Layout.fillWidth: true
                                 from: -180; to: 180; step: 1
@@ -210,10 +359,10 @@ Item {
                         ColumnLayout {
                             width: 130
                             spacing: 3
-                            Label { text: "Tilt (deg)"; color: "#475569"; font.pixelSize: 11 }
+                            Label { text: "Tilt (deg)"; color: mutedColor; font.pixelSize: 11 }
                             UnixSpinBox {
                                 Layout.fillWidth: true
-                                from: -85; to: 10; step: 1
+                                from: -85; to: 90; step: 1
                                 decimals: 0
                                 value: root.camTilt
                                 onValueEdited: function(v) { root.camTilt = v }
@@ -223,10 +372,10 @@ Item {
                         ColumnLayout {
                             width: 130
                             spacing: 3
-                            Label { text: "Objetivo X"; color: "#475569"; font.pixelSize: 11 }
+                            Label { text: "Objetivo X"; color: mutedColor; font.pixelSize: 11 }
                             UnixSpinBox {
                                 Layout.fillWidth: true
-                                from: -300; to: 300; step: 1
+                                from: -2000; to: 2000; step: 1
                                 decimals: 0
                                 value: root.camTargetX
                                 onValueEdited: function(v) { root.camTargetX = v }
@@ -236,10 +385,10 @@ Item {
                         ColumnLayout {
                             width: 130
                             spacing: 3
-                            Label { text: "Objetivo Y"; color: "#475569"; font.pixelSize: 11 }
+                            Label { text: "Objetivo Y"; color: mutedColor; font.pixelSize: 11 }
                             UnixSpinBox {
                                 Layout.fillWidth: true
-                                from: -200; to: 300; step: 1
+                                from: -2000; to: 2000; step: 1
                                 decimals: 0
                                 value: root.camHeight
                                 onValueEdited: function(v) { root.camHeight = v }
@@ -249,10 +398,10 @@ Item {
                         ColumnLayout {
                             width: 130
                             spacing: 3
-                            Label { text: "Distancia (Z)"; color: "#475569"; font.pixelSize: 11 }
+                            Label { text: "Distancia (Z)"; color: mutedColor; font.pixelSize: 11 }
                             UnixSpinBox {
                                 Layout.fillWidth: true
-                                from: 80; to: 450; step: 1
+                                from: 200; to: 5000; step: 1
                                 decimals: 0
                                 value: root.camDistance
                                 onValueEdited: function(v) { root.camDistance = v }
@@ -262,10 +411,10 @@ Item {
                         ColumnLayout {
                             width: 130
                             spacing: 3
-                            Label { text: "FOV (deg)"; color: "#475569"; font.pixelSize: 11 }
+                            Label { text: "FOV (deg)"; color: mutedColor; font.pixelSize: 11 }
                             UnixSpinBox {
                                 Layout.fillWidth: true
-                                from: 20; to: 90; step: 1
+                                from: -900; to: 90; step: 1
                                 decimals: 0
                                 value: root.camFov
                                 onValueEdited: function(v) { root.camFov = v }
@@ -274,6 +423,24 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    // Mantener sliders sincronizados si los valores se actualizan desde fuera
+    Connections {
+        target: root
+        function onAngrotacion1Changed() {
+            if (rot1Slider.value !== root.angrotacion1)
+                rot1Slider.value = root.angrotacion1
+        }
+        function onMovdistance1Changed() {
+            var scaledMov = root.movdistance1 * 10
+            if (movSlider.value !== scaledMov)
+                movSlider.value = scaledMov
+        }
+        function onAngrotacion2Changed() {
+            if (rot2Slider.value !== root.angrotacion2)
+                rot2Slider.value = root.angrotacion2
         }
     }
 }

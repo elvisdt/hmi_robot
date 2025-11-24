@@ -17,6 +17,16 @@ Canvas {
     property real worldYMax: 600
     property real gridStep: 100
     property real marginRatio: 0.08
+    property bool showWorkArea: true
+
+    // area de trbajo
+    property real workXMin: -1200
+    property real workXMax: 1200
+    property real workYMin: -1200
+    property real workYMax: 1200
+    property color workAreaFill: palette.workAreaFill || Qt.rgba(0.31, 0.62, 1, 0.09)
+    property color workAreaStroke: palette.workAreaStroke || Qt.rgba(0.65, 0.21, 33, 0.31)
+    
     property color unitColor: palette.label || "#9ca3af"
     property color canvasColor: palette.canvasBg || "#f9fafc"
     property color gridColor: palette.grid || "#e7ebf3"
@@ -41,6 +51,13 @@ Canvas {
     onWorldYMinChanged: requestPaint()
     onWorldYMaxChanged: requestPaint()
     onGridStepChanged: requestPaint()
+    onShowWorkAreaChanged: requestPaint()
+    onWorkXMinChanged: requestPaint()
+    onWorkXMaxChanged: requestPaint()
+    onWorkYMinChanged: requestPaint()
+    onWorkYMaxChanged: requestPaint()
+    onWorkAreaFillChanged: requestPaint()
+    onWorkAreaStrokeChanged: requestPaint()
 
     function setPoints(arr) {
         points = arr || []
@@ -119,11 +136,27 @@ Canvas {
                 ctx.fillText(gyLab.toFixed(0), margin - 26, pyLab + 3)
         }
 
+        if (showWorkArea) {
+            var left = xPx(workXMin)
+            var right = xPx(workXMax)
+            var top = yPx(workYMax)
+            var bottom = yPx(workYMin)
+            var wArea = right - left
+            var hArea = bottom - top
+            ctx.fillStyle = workAreaFill
+            ctx.strokeStyle = workAreaStroke
+            ctx.lineWidth = 2
+            ctx.beginPath()
+            ctx.rect(left, top, wArea, hArea)
+            ctx.fill()
+            ctx.stroke()
+        }
+
         if (showAxes) {
             var arrow = 7
             var xAxisY = yPx(0)
-            var xStart = xPx(worldXMin)
-            var xEnd = xPx(worldXMax)
+            var xStart = xPx(visMinX)
+            var xEnd = xPx(visMaxX)
             ctx.strokeStyle = axisXColor
             ctx.lineWidth = 1.5
             ctx.beginPath()
@@ -139,10 +172,12 @@ Canvas {
             ctx.fillStyle = axisXColor
             ctx.font = "11px sans-serif"
             ctx.fillText("X", xEnd - 12, xAxisY - 8)
+            //ctx.fillText("X", 0, 0)
+            
 
             var yAxisX = xPx(0)
-            var yStart = yPx(worldYMin)
-            var yEnd = yPx(worldYMax)
+            var yStart = yPx(visMinY)
+            var yEnd = yPx(visMaxY)
             ctx.strokeStyle = axisYColor
             ctx.beginPath()
             ctx.moveTo(yAxisX + 0.5, yStart)
@@ -157,7 +192,9 @@ Canvas {
             ctx.lineTo(yAxisX + arrow * 0.6, yTip + arrow)
             ctx.stroke()
             ctx.fillStyle = axisYColor
-            ctx.fillText("Y", yAxisX + 8, yTip - 10)
+            // ctx.fillText("Y", yAxisX + 8, yTip - 10)
+            ctx.fillText("Y", yAxisX, yTip)
+            // print(yTip, yAxisX)
         }
 
         ctx.lineWidth = 2

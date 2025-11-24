@@ -14,11 +14,14 @@ Item {
     property color axisXColor: "#ef4444"
     property color axisYColor: "#10b981"
     property real rotationDeg: -90   // rota el plano: -90 => X hacia arriba, Y hacia la izquierda
-    property real worldXMin: -100
-    property real worldXMax: 1000
-    property real worldYMin: -800
-    property real worldYMax: 800
-    property real gridStep: 100
+    
+    property real worldXMin: -1300
+    property real worldXMax: 1300
+
+    property real worldYMin: -1300
+    property real worldYMax: 1300
+    
+    property real gridStep: 200
     property real marginRatio: 0.08    // debe coincidir con backend.margin_ratio
     property var palette: ({})
     property color cardColor: palette.cardBg || "#ffffff"

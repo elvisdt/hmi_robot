@@ -11,7 +11,7 @@ ApplicationWindow {
     width: 1200
     height: 800
     title: "Interfaz de control del Robot"
-    property bool darkMode: false
+    property bool darkMode: true
     property var basePalette: ({
         windowBg: "#f5f7fb",
         cardBg: "#ffffff",
@@ -88,27 +88,6 @@ ApplicationWindow {
                 checked: darkMode
                 onCheckedChanged: app.darkMode = checked
             }
-
-            // RoundButton {
-            //     id: addButton
-            //     text: "+"
-            //     font.pixelSize: 18
-            //     implicitWidth: 42
-            //     implicitHeight: 42
-            //     Layout.alignment: Qt.AlignVCenter
-            //     background: Rectangle {
-            //         radius: height / 2
-            //         color: accentColor
-            //     }
-            //     contentItem: Text {
-            //         text: addButton.text
-            //         font: addButton.font
-            //         color: "#ffffff"
-            //         horizontalAlignment: Text.AlignHCenter
-            //         verticalAlignment: Text.AlignVCenter
-            //     }
-            //     onClicked: importClicked()
-            // }
         }
     }
 
@@ -174,15 +153,14 @@ ApplicationWindow {
                         Layout.minimumWidth: 350
                         Layout.minimumHeight: 360
                         accentColor: app.accentColor
+                        palette: app.palette
                     }
                 }
             }
         }
     }
 
-    // function importClicked() {
-    //     console.log("Importar archivo CAD")
-    // }
+
 
     function loadDxfFile(url) {
         if (!url || url.toString().length === 0)
