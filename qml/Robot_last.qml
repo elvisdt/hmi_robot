@@ -11,28 +11,28 @@ Node {
     // Grupo base
     Node {
         id: base_group
-        eulerRotation.x: -90
-
+        // eulerRotation.y: 150
         scale: Qt.vector3d(10, 10, 10)
 
         // Base inferior
-        Model { 
-            eulerRotation.x: 90
-            source: "../assets/meshes/table.mesh"; 
-            materials: [_material_steel] 
-            }
-        Model { source: "../assets/meshes/base_mesh.mesh"; materials: [_material_acero01, _material_red_plastic, _material_acero01] }
+        Model { source: "../assets/meshes/table_mesh.mesh"; materials: [_material_steel] }
+        Model { source: "../assets/meshes/base_01_mesh.mesh"; materials: [_material_acero01, _material_red_plastic, _material_acero01] }
+        Model { source: "../assets/meshes/btn_01_00_mesh.mesh"; materials: [_material_steel] }
+        Model { source: "../assets/meshes/btn_01_01_mesh.mesh"; materials: [_material_red_plastic, _color_bleanco] }
+        Model { source: "../assets/meshes/btn_02_00_mesh.mesh"; materials: [_material_steel] }
+        Model { source: "../assets/meshes/btn_02_01_mesh.mesh"; materials: [_material_green_plastic, _color_bleanco] }
+        Model { source: "../assets/meshes/rotor_01_mesh.mesh"; materials: [_material_acero01]}
 
         // Base superior + primer brazo
         Node {
             id: prismatic_axis
-            position.z: robot.movement1
-            eulerRotation.z: -90
+            position.y: robot.movement1
+
             Node {
                 id: joint1
-                position.z:27 //31-4
-                eulerRotation.z: robot.rotation1
-                //eulerRotation.z : 90
+                position.y :-6 //4+2
+                eulerRotation.y: robot.rotation1
+
                 Node {
                     id: brazo_01
                     Model {
@@ -43,9 +43,9 @@ Node {
 
                 Node {
                     id: joint2
-                    position.x : -60
-                    position.z : -17
-                    eulerRotation.z: robot.rotation2
+                    position.z : -60
+                    position.y : 2.5
+                    eulerRotation.y: robot.rotation2
 
                     Node {
                         id: brazo_02
@@ -64,8 +64,8 @@ Node {
                     }
                     Node {
                         id: boquilla
-                        position.x : -58
-                        position.z : 13
+                        position.z :-57.5
+                        position.y :-15
                         Model {
                             source: "../assets/meshes/boquilla_mesh.mesh"
                             materials: [

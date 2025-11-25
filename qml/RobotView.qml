@@ -28,7 +28,7 @@ Item {
     property real camTargetX: -800      
 
 
-    property real movdistance1: 4
+    property real movdistance1: 0
     property real angrotacion1: 0
     property real angrotacion2: 0
 
@@ -193,8 +193,8 @@ Item {
                                 Item { Layout.fillWidth: true }
                                 IOSSlider{
                                     id: rot1Slider
-                                    minValue: -90
-                                    maxValue: 90
+                                    minValue: -150
+                                    maxValue: 150
                                     sliderValue: 1
                                     value: angrotacion1
                                     onMoved: angrotacion1 = value
@@ -212,7 +212,7 @@ Item {
                                 Item { Layout.fillWidth: true }
                                 IOSSlider{
                                     id: rot2Slider
-                                    minValue: -150
+                                    minValue: 0
                                     maxValue: 150
                                     sliderValue: 1
                                     value: angrotacion2
@@ -269,19 +269,19 @@ Item {
                         Robot {
                             Behavior on rotation1 {
                                 SmoothedAnimation {
-                                    velocity: 60
+                                    velocity: 100
                                 }
                             }
                             
                             Behavior on movement1 {
                                 SmoothedAnimation {
-                                    velocity: 60
+                                    velocity: 100
                                 }
                             }
 
                             Behavior on rotation2 {
                                 SmoothedAnimation {
-                                    velocity: 80
+                                    velocity: 100
                                 }
                             }
 

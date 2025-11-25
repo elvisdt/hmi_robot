@@ -11,27 +11,22 @@ Node {
     // Grupo base
     Node {
         id: base_group
-        eulerRotation.x: -90
-
+        // eulerRotation.y: 150
         scale: Qt.vector3d(10, 10, 10)
 
         // Base inferior
-        Model { 
-            eulerRotation.x: 90
-            source: "../assets/meshes/table.mesh"; 
-            materials: [_material_steel] 
-            }
+        Model { source: "../assets/meshes/table.mesh"; materials: [_material_steel] }
         Model { source: "../assets/meshes/base_mesh.mesh"; materials: [_material_acero01, _material_red_plastic, _material_acero01] }
 
         // Base superior + primer brazo
         Node {
             id: prismatic_axis
-            position.z: robot.movement1
-            eulerRotation.z: -90
+            position.y: robot.movement1
+
             Node {
                 id: joint1
-                position.z:27 //31-4
-                eulerRotation.z: robot.rotation1
+                position.y:27 //31-4
+                eulerRotation.y: robot.rotation1
                 //eulerRotation.z : 90
                 Node {
                     id: brazo_01
@@ -44,8 +39,8 @@ Node {
                 Node {
                     id: joint2
                     position.x : -60
-                    position.z : -17
-                    eulerRotation.z: robot.rotation2
+                    position.y : -17
+                    eulerRotation.y: robot.rotation2
 
                     Node {
                         id: brazo_02
@@ -65,7 +60,7 @@ Node {
                     Node {
                         id: boquilla
                         position.x : -58
-                        position.z : 13
+                        position.y : 13
                         Model {
                             source: "../assets/meshes/boquilla_mesh.mesh"
                             materials: [
