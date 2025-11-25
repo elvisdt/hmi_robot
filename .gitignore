@@ -1,4 +1,6 @@
 __pycache__/
 .venv/
 *.pyc
-docs/Depuracion_TrayFinal.csv
+docs/MATLAB/Depuracion_TrayFinal.csv
+docs/*.zip
+docs/*/*.zip
