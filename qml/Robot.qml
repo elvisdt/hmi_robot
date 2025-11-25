@@ -21,7 +21,11 @@ Node {
             source: "../assets/meshes/table.mesh"; 
             materials: [_material_steel] 
             }
-        Model { source: "../assets/meshes/base_mesh.mesh"; materials: [_material_acero01, _material_red_plastic, _material_acero01] }
+        Model { 
+            source: "../assets/meshes/base_mesh.mesh";
+            materials: [_material_acero01, _material_red_plastic, _material_acero01] 
+            }
+
 
         // Base superior + primer brazo
         Node {

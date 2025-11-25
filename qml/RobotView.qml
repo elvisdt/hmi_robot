@@ -31,6 +31,24 @@ Item {
     property real movdistance1: 0
     property real angrotacion1: 0
     property real angrotacion2: 0
+    property real l1mm: 600      // brazo 1 en mm
+    property real l2mm: 580      // brazo 2 en mm
+
+    // Matriz homogenea base->tool (mm) segun valores D1, R1 y R2
+    property var homMatrix: {
+        const th2 = angrotacion1 * Math.PI / 180;
+        const th3 = angrotacion2 * Math.PI / 180;
+        const c2 = Math.cos(th2);
+        const s2 = Math.sin(th2);
+        const c23 = Math.cos(th2 + th3);
+        const s23 = Math.sin(th2 + th3);
+        return [
+            [c23, -s23, 0, l1mm * c2 + l2mm * c23],
+            [s23,  c23, 0, l1mm * s2 + l2mm * s23],
+            [0,       0, 1, movdistance1],
+            [0,       0, 0, 1]
+        ];
+    }
 
     property color cardColor: palette.cardBg || "#ffffff"
     property color borderColor: palette.stroke || "#e4e8f0"
@@ -43,6 +61,19 @@ Item {
     property var markers: []          // [{x:..., y:..., z:..., color: "#rrggbb"}]
     property real markerSize: 6
     property color markerColor: palette.accent || accentColor
+    // Colores adaptativos para la tarjeta de matriz
+    property bool matrixDark: luma(cardColor) < 0.5
+    property color matrixBg: matrixDark ? "#0c1729" : panelBg
+    property color matrixBorder: matrixDark ? "#0f223c" : panelBorder
+    property color matrixInner: matrixDark ? "#0f223c" : "#ffffff"
+    property color matrixInnerBorder: matrixDark ? "#1b3353" : panelBorder
+    property color matrixText: matrixDark ? "#e8eef9" : textColor
+    property color matrixSubText: matrixDark ? "#9bb0ce" : mutedColor
+
+    function luma(c) {
+        // c.r,g,b en [0,1]
+        return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b
+    }
 
     function updateCamera() {
         var yawRad = root.camYaw * Math.PI / 180
@@ -58,6 +89,14 @@ Item {
 
         camera.position = Qt.vector3d(x, y, z)
         camera.lookAt(Qt.vector3d(targetX, targetY, targetZ))
+    }
+
+    function formatEntry(r, c) {
+        var H = root.homMatrix
+        if (!H || !H[r] || H[r][c] === undefined) return "--"
+        var v = H[r][c]
+        if (Math.abs(v) < 1e-4) v = 0
+        return Math.abs(v) >= 1000 ? v.toFixed(0) : v.toFixed(1)
     }
 
     onCamYawChanged: updateCamera()
@@ -127,9 +166,64 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 150
                     radius: 10
-                    color: panelBg
-                    border.color: panelBorder
+                    color: matrixBg
+                    border.color: matrixBorder
                     border.width: 1
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 8
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "MTH T0_3"
+                                color: matrixText
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: "L1=" + l1mm + " mm | L2=" + l2mm + " mm"
+                                color: matrixSubText
+                                font.pixelSize: 10
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            radius: 8
+                            color: matrixInner
+                            border.color: matrixInnerBorder
+                            border.width: 1
+
+                            GridLayout {
+                                anchors.fill: parent
+                                anchors.margins: 10
+                                columns: 4
+                                columnSpacing: 10
+                                rowSpacing: 8
+
+                                Repeater {
+                                    model: 16
+                                    delegate: Label {
+                                        required property int index
+                                        property int r: Math.floor(index / 4)
+                                        property int c: index % 4
+                                        text: formatEntry(r, c)
+                                        color: matrixText
+                                        font.pixelSize: 12
+                                        font.family: "Consolas"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // slider secction
