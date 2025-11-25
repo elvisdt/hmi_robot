@@ -5,3 +5,4 @@ docs/Depuracion_TrayFinal.csv
 docs/*.zip
 docs/*/*.zip
 assets/TEST/
+docs/*.csv   # si quieres ignorar todos los csv de esa carpeta
