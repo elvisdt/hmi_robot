@@ -92,8 +92,12 @@ Item {
                         font.pixelSize: 14
                         background: Rectangle {
                             radius: 9
-                            color: control.pressed ? "#0f172a" : "#111827"
-                            border.color: control.hovered ? view2d.accentColor : "#1f2937"
+                            color: control.pressed
+                                   ? (view2d.palette.panelBg || view2d.palette.cardBg || "#e5e7eb")
+                                   : (view2d.palette.cardBg || "#f5f7fb")
+                            border.color: control.hovered
+                                         ? view2d.accentColor
+                                         : (view2d.palette.stroke || "#cbd2dd")
                             scale: control.pressed ? 0.97 : 1
                         }
                         contentItem: Text {

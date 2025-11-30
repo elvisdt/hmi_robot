@@ -24,7 +24,7 @@ Item {
     property real camHeight: 250      
     property real camYaw: -45
     property real camTilt: 20
-    property real camFov: 20
+    property real camFov: 30
     property real camTargetX: -800      
 
 
@@ -119,6 +119,7 @@ Item {
         xhr.send()
     }
 
+
     function applyStep(idx) {
         if (idx < 0 || idx >= root.trajArt.length) return
         var p = root.trajArt[idx]
@@ -155,9 +156,9 @@ Item {
 
     function goHome() {
         root.stop()
-        root.movdistance1 = 0
+        root.movdistance1 = 4
         root.angrotacion1 = 0
-        root.angrotacion2 = 150
+        root.angrotacion2 = 165
         root.trajIndex = 0
     }
 
@@ -387,13 +388,13 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label { text: "D1:"; color: mutedColor; font.pixelSize: 11;  Layout.preferredWidth: 16}
-                                Label { text: Math.round(movSlider.value) + " mm"; color: textColor; font.pixelSize: 12; Layout.preferredWidth: 40 }
+                                Label { text: Math.round(movSlider.value,1) + " mm"; color: textColor; font.pixelSize: 12; Layout.preferredWidth: 40 }
                                 Item { Layout.fillWidth: true }
                                 IOSSlider{
                                     id: movSlider
                                     minValue: 0
-                                    maxValue: 40
-                                    step: 1
+                                    maxValue: 4
+                                    step: 0.1
                                     value: movdistance1
                                     onMoved: movdistance1 = value
                                     Layout.preferredWidth: 100 
@@ -428,7 +429,7 @@ Item {
                                 IOSSlider{
                                     id: rot2Slider
                                     minValue: 0
-                                    maxValue: 150
+                                    maxValue: 165
                                     sliderValue: 1
                                     value: angrotacion2
                                     onMoved: angrotacion2 = value

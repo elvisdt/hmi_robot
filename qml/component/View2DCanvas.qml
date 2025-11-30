@@ -10,11 +10,11 @@ Item {
     property var drawPoints: []              // buffer copiado para pintar
     property color accentColor: palette.accent || "#0a84ff"
     property bool showAxes: true
-    property color axisXColor: "#ef4444"
-    property color axisYColor: "#10b981"
-    property color canvasColor: palette.canvasBg || "#0f172a"
-    property color gridColor: palette.grid || "#1f2a3d"
-    property color unitColor: palette.label || "#9ca3af"
+    property color axisXColor: palette.axisX || palette.accent || "#ef4444"
+    property color axisYColor: palette.axisY || palette.accent || "#10b981"
+    property color canvasColor: palette.canvasBg || palette.cardBg || "#f9fafc"
+    property color gridColor: palette.grid || Qt.darker(canvasColor, 1.08)
+    property color unitColor: palette.text || palette.label || "#6b7280"
 
     // Ajustes de vista
     property real gridStep: 50
@@ -32,6 +32,11 @@ Item {
     Layout.fillHeight: true
 
     onPointsChanged: setPoints(points)
+    onCanvasColorChanged: canvas.requestPaint()
+    onGridColorChanged: canvas.requestPaint()
+    onAxisXColorChanged: canvas.requestPaint()
+    onAxisYColorChanged: canvas.requestPaint()
+    onUnitColorChanged: canvas.requestPaint()
 
     function setPoints(arr) {
         points = arr || []

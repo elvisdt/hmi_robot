@@ -18,6 +18,7 @@ Node {
         // Base inferior
         Model { 
             eulerRotation.x: 90
+            position.y: -10
             source: "../assets/meshes/table.mesh"; 
             materials: [_material_steel] 
             }
