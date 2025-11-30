@@ -136,8 +136,14 @@ ApplicationWindow {
                         onDxfSelected: function(fileUrl) { loadDxfFile(fileUrl) }
                         onCsvSelected: function(fileUrl) { loadCsvFile(fileUrl) }
                         onRobotTrajSelected: function(fileUrl) { robotView.setTrajectoryFile(fileUrl) }
-                        onRobotPlay: robotView.play()
-                        onRobotStop: robotView.stop()
+                        onRobotPlay: {
+                            robotView.play()
+                            viewer2d.startPath()
+                        }
+                        onRobotStop: {
+                            robotView.stop()
+                            viewer2d.stopPath()
+                        }
                         onRobotHome: robotView.goHome()
                         onRobotReset: robotView.resetPose()
                         onRobotSpeedChanged: function(factor) { robotView.setPlaybackSpeed(factor) }

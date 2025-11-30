@@ -25,6 +25,8 @@ Item {
     property real axisMaxX: 300
     property real axisMinY: -300
     property real axisMaxY: 300
+    property int pathIndex: -1
+    property var pathPoints: []
     property real rotationDeg: 0
     property real minSpan: 50
 
@@ -37,6 +39,11 @@ Item {
     onAxisXColorChanged: canvas.requestPaint()
     onAxisYColorChanged: canvas.requestPaint()
     onUnitColorChanged: canvas.requestPaint()
+
+    // Permite pedir repintado desde el exterior
+    function requestPaint() {
+        canvas.requestPaint()
+    }
 
     function setPoints(arr) {
         points = arr || []
@@ -259,6 +266,15 @@ Item {
                     current.push(p)
                 }
                 flush()
+            }
+
+            // Punto animado (recorrido)
+            if (pathIndex >= 0 && pathPoints && pathPoints.length > pathIndex) {
+                var pt = pathPoints[pathIndex]
+                ctx.beginPath()
+                ctx.fillStyle = palette.accent || "#00c853"
+                ctx.arc(xPx(pt.x), yPx(pt.y), 4, 0, Math.PI * 2)
+                ctx.fill()
             }
 
             ctx.restore()

@@ -35,11 +35,11 @@ fprintf('       Par  metros F  sicos y Din  micos definidos.\n');
 params.Qdot_max  = [1.0; 4.0; 4.0];  % [m/s, rad/s, rad/s] Velocidad m  xima
 params.Qddot_max = [5.0; 30.0; 30.0]; % [m/s^2, rad/s^2, rad/s^2] Aceleraci  n m  xima
 
-%% -------------------- 2) Par  metros de Operaci  n y Control -----------------
-Z_home         = 200;   % [mm] Altura de traslado
-Z_cut          = 150;   % [mm] Altura de corte
+%% -------------------- 2) Par  metros de Operacion y Control -----------------
+Z_home         = 40;   % [mm] Altura de traslado
+Z_cut          = 15;   % [mm] Altura de corte
 Speed_traslado = 45000; % [mm/min]
-ratio          = 0.05;
+ratio          = 0.5;
 Speed_cut      = ratio*Speed_traslado; % [mm/min]
 
 %% --- DEFINICI  N CARTESIANA HOME-----------------------
@@ -53,12 +53,12 @@ Z_home_mm = Z_home; % 200 mm
 P_home_cart_mm = [X_home_mm, Y_home_mm, Z_home_mm]; % [mm]
 
 % Par  metros de Muestreo, Interpolaci  n y Perfilado
-params.paso = 0.05;                % [mm] Resoluci  n espacial para interpolaci  n
-params.Fs   = 2000;              % [Hz] Frecuencia de muestreo/Simulaci  n
+params.paso = 0.05;                % [mm] Resolucion espacial para interpolacion
+params.Fs   = 2000;              % [Hz] Frecuencia de muestreo/Simulacion
 %   Importante! Usamos tu valor de A_max para PlanificarTrayectoria
-A_max_cart = 5000;              % [mm/s^2] Aceleraci  n cartesiana m  xima (para perfil trapezoidal)
+A_max_cart = 5000;              % [mm/s^2] Aceleracion cartesianam  xima (para perfil trapezoidal)
 
-% Factor de Aceleraci  n de Visualizaci  n
+% Factor de Aceleraci  n de Visualizacin
 params.SpeedUp_Factor = 1.0; % Visualizaci  n 100x m  s r  pida
 
 fprintf('Para metros de Operaci  n definidos: V_traslado=%.0f mm/min, A_max_cart=%.0f mm/s^2\n', Speed_traslado, A_max_cart);

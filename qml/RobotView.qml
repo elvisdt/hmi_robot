@@ -77,6 +77,8 @@ Item {
     property int playbackIntervalMs: 20
     property int playbackSkip: 1
     property real animVelocity: 1000
+    property real playProgress: 0.0
+    property color progressFill: palette.accent || accentColor
 
     function luma(c) {
         // c.r,g,b en [0,1]
@@ -110,6 +112,7 @@ Item {
                     }
                     root.trajArt = data
                     root.trajIndex = 0
+                    root.playProgress = 0
                     console.log("Trayectoria cargada puntos:", data.length)
                 } else {
                     console.log("No se pudo leer CSV:", xhr.status)
@@ -134,16 +137,19 @@ Item {
         root.loadTrajectory(url)
         root.trajPlaying = false
         root.trajIndex = 0
+        root.playProgress = 0
     }
 
     function play() {
         if (root.trajArt.length === 0) return
         if (root.trajIndex >= root.trajArt.length) root.trajIndex = 0
         root.trajPlaying = true
+        root.playProgress = root.trajArt.length > 0 ? root.trajIndex / root.trajArt.length : 0
     }
 
     function stop() {
         root.trajPlaying = false
+        root.playProgress = root.trajArt.length > 0 ? root.trajIndex / root.trajArt.length : 0
     }
 
     function setPlaybackSpeed(factor) {
@@ -215,13 +221,16 @@ Item {
                 if (root.trajIndex >= root.trajArt.length) {
                     root.trajPlaying = false
                     root.trajIndex = 0
+                    root.playProgress = 1.0
                     break
                 }
             }
             if (root.trajIndex >= root.trajArt.length) {
                 root.trajPlaying = false
                 root.trajIndex = 0
+                root.playProgress = 1.0
             }
+            root.playProgress = root.trajArt.length > 0 ? root.trajIndex / root.trajArt.length : 0
         }
     }
     onTrajPlayingChanged: {
@@ -264,6 +273,27 @@ Item {
                     font.pixelSize: 12
                 }
                 Item { Layout.fillWidth: true }
+                Rectangle {
+                    width: 140
+                    height: 10
+                    radius: 5
+                    color: panelBg
+                    border.color: panelBorder
+                    Layout.alignment: Qt.AlignVCenter
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.max(6, parent.width * root.playProgress)
+                        height: parent.height
+                        radius: 5
+                        color: progressFill
+                    }
+                }
+                Label {
+                    text: Math.round(root.playProgress * 100) + "%"
+                    color: mutedColor
+                    font.pixelSize: 11
+                }
                 Rectangle {
                     radius: 12
                     height: 28

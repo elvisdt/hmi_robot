@@ -20,6 +20,7 @@ Item {
     property real gridStep: 50
     property real marginRatio: 0.05
     property real padFactor: 0.2
+    property int pathPlayIndex: -1
     
     property var palette: ({})
     property color cardColor: palette.cardBg || "#ffffff"
@@ -141,6 +142,7 @@ Item {
                     padFactor: view2d.padFactor
                     canvasColor: view2d.canvasColor
                     gridColor: view2d.gridColor
+                    pathIndex: view2d.pathPlayIndex
                     
                 }
             }
@@ -184,6 +186,7 @@ Item {
     }
 
     function setPoints(arr) {
+        pathPlayIndex = -1
         if (autoFitBounds && arr && arr.length > 0) {
             var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
             for (var i = 0; i < arr.length; i++) {
@@ -222,5 +225,51 @@ Item {
             // reset fijo
             canvas.fitToBounds(-300, 300, -300, 300)
         }
+        if (canvas.setPoints)
+            canvas.setPoints(arr)
+        else
+            canvas.points = arr
+    }
+
+    Timer {
+        id: pathTimer
+        interval: 30
+        repeat: true
+        running: false
+        onTriggered: stepPath()
+    }
+
+    function startPath() {
+        var pts = canvas.points || []
+        var flat = []
+        for (var i = 0; i < pts.length; i++) {
+            var p = pts[i]
+            if (!p || p.break || p.x === undefined || p.y === undefined) continue
+            flat.push(p)
+        }
+        if (flat.length === 0) return
+        canvas.pathPoints = flat
+        pathPlayIndex = 0
+        pathTimer.running = true
+        canvas.requestPaint()
+    }
+
+    function stopPath() {
+        pathTimer.running = false
+        pathPlayIndex = -1
+        canvas.requestPaint()
+    }
+
+    function stepPath() {
+        if (pathPlayIndex < 0 || !canvas.pathPoints || canvas.pathPoints.length === 0) {
+            stopPath()
+            return
+        }
+        pathPlayIndex += 1
+        if (pathPlayIndex >= canvas.pathPoints.length) {
+            stopPath()
+            return
+        }
+        canvas.requestPaint()
     }
 }
