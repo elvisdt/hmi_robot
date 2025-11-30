@@ -2,7 +2,7 @@ function grupos = LeerTrayectoria(filename)
 % Leer archivo TXT/CSV, devuelve celda con grupos { [X Y Z CORTAR] }
     if nargin < 1 || isempty(filename)
         [fname, pth] = uigetfile({'*.txt;*.csv','Archivo DXF->TXT (*.txt,*.csv)'}, 'Selecciona archivo');
-        if isequal(fname,0), error('No se seleccionó archivo.'); end
+        if isequal(fname,0), error('No se seleccion   archivo.'); end
         filepath = fullfile(pth, fname);
     else
         filepath = filename;
@@ -11,7 +11,7 @@ function grupos = LeerTrayectoria(filename)
 
     data = readmatrix(filepath);  % asumir [X Y Z CORTAR]
 
-    if size(data,2) < 4, error('Archivo inválido: debe tener 4 columnas [X Y Z CORTAR].'); end
+    if size(data,2) < 4, error('Archivo inv  lido: debe tener 4 columnas [X Y Z CORTAR].'); end
 
     X = data(:,1); Y = data(:,2); Z = data(:,3); C = data(:,4);
 
@@ -26,5 +26,5 @@ function grupos = LeerTrayectoria(filename)
             grupos{end+1} = [X(ini:fin), Y(ini:fin), Z(ini:fin), C(ini:fin)]; %#ok<AGROW>
         end
     end
-    fprintf('📄 Se detectaron %d grupos en el archivo.\n', numel(grupos));
+    fprintf('     Se detectaron %d grupos en el archivo.\n', numel(grupos));
 end

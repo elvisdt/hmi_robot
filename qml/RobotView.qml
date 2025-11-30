@@ -69,10 +69,101 @@ Item {
     property color matrixInnerBorder: matrixDark ? "#1b3353" : panelBorder
     property color matrixText: matrixDark ? "#e8eef9" : textColor
     property color matrixSubText: matrixDark ? "#9bb0ce" : mutedColor
+    // Trayectoria importada (articular)
+    property var trajArt: []          // [{d1,th2,th3}]
+    property int trajIndex: 0
+    property bool trajPlaying: false
+    property string trajPath: "docs/trayectorias/TrayFinal_art.csv"
+    property int playbackIntervalMs: 20
+    property int playbackSkip: 1
+    property real animVelocity: 1000
 
     function luma(c) {
         // c.r,g,b en [0,1]
         return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b
+    }
+
+    function loadTrajectory(path) {
+        var url = String(path)
+        if (url.indexOf("file:/") !== 0) {
+            url = "file:///" + url
+        }
+        url = url.replace(/\\/g, "/")
+        var xhr = new XMLHttpRequest()
+        xhr.open("GET", url)
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200 || xhr.status === 0) {
+                    var lines = xhr.responseText.split(/\r?\n/)
+                    var data = []
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i].trim()
+                        if (!line || line.startsWith("#")) continue
+                        var parts = line.split(/[ ,]+/)
+                        if (parts.length < 3) continue
+                        var d1 = parseFloat(parts[0])
+                        var th2 = parseFloat(parts[1])
+                        var th3 = parseFloat(parts[2])
+                        if (isNaN(d1) || isNaN(th2) || isNaN(th3)) continue
+                        // Convertir unidades: d1 m -> mm, angulos rad -> deg
+                        data.push({ d1mm: d1 * 1000.0, th2deg: th2 * 180 / Math.PI, th3deg: th3 * 180 / Math.PI })
+                    }
+                    root.trajArt = data
+                    root.trajIndex = 0
+                    console.log("Trayectoria cargada puntos:", data.length)
+                } else {
+                    console.log("No se pudo leer CSV:", xhr.status)
+                }
+            }
+        }
+        xhr.send()
+    }
+
+    function applyStep(idx) {
+        if (idx < 0 || idx >= root.trajArt.length) return
+        var p = root.trajArt[idx]
+        root.movdistance1 = (p.d1mm)/100
+        root.angrotacion1 = p.th2deg
+        root.angrotacion2 = p.th3deg
+    }
+
+    function setTrajectoryFile(url) {
+        if (!url || url.length === 0) return
+        root.trajPath = url
+        root.loadTrajectory(url)
+        root.trajPlaying = false
+        root.trajIndex = 0
+    }
+
+    function play() {
+        if (root.trajArt.length === 0) return
+        if (root.trajIndex >= root.trajArt.length) root.trajIndex = 0
+        root.trajPlaying = true
+    }
+
+    function stop() {
+        root.trajPlaying = false
+    }
+
+    function setPlaybackSpeed(factor) {
+        var k = Math.max(1, factor || 1)
+        root.playbackSkip = Math.max(1, Math.floor(k))
+        root.playbackIntervalMs = Math.max(5, 50 - Math.floor((k - 1) * 5))
+        root.animVelocity = 300 * k
+    }
+
+
+    function goHome() {
+        root.stop()
+        root.movdistance1 = 0
+        root.angrotacion1 = 0
+        root.angrotacion2 = 150
+        root.trajIndex = 0
+    }
+
+    
+    function resetPose() {
+        root.goHome()
     }
 
     function updateCamera() {
@@ -96,7 +187,10 @@ Item {
         if (!H || !H[r] || H[r][c] === undefined) return "--"
         var v = H[r][c]
         if (Math.abs(v) < 1e-4) v = 0
-        return Math.abs(v) >= 1000 ? v.toFixed(0) : v.toFixed(1)
+        var av = Math.abs(v)
+        if (av >= 1000) return v.toFixed(0)
+        if (av >= 10) return v.toFixed(2)
+        return v.toFixed(3)
     }
 
     onCamYawChanged: updateCamera()
@@ -105,6 +199,33 @@ Item {
     onCamHeightChanged: updateCamera()
     onCamTargetXChanged: updateCamera()
     Component.onCompleted: updateCamera()
+
+    Timer {
+        id: trajTimer
+        interval: root.playbackIntervalMs
+        repeat: true
+        running: root.trajPlaying
+        onTriggered: {
+            if (!root.trajPlaying || root.trajArt.length === 0) return
+            for (var s = 0; s < root.playbackSkip; s++) {
+                if (!root.trajPlaying || root.trajArt.length === 0) break
+                root.applyStep(root.trajIndex)
+                root.trajIndex += 1
+                if (root.trajIndex >= root.trajArt.length) {
+                    root.trajPlaying = false
+                    root.trajIndex = 0
+                    break
+                }
+            }
+            if (root.trajIndex >= root.trajArt.length) {
+                root.trajPlaying = false
+                root.trajIndex = 0
+            }
+        }
+    }
+    onTrajPlayingChanged: {
+        trajTimer.running = root.trajPlaying
+    }
 
 
     Rectangle {
@@ -273,8 +394,8 @@ Item {
                                     minValue: 0
                                     maxValue: 40
                                     step: 1
-                                    value: movdistance1 * 10   // usamos escala x10 para permitir 0.1 mm
-                                    onMoved: movdistance1 = value / 10
+                                    value: movdistance1
+                                    onMoved: movdistance1 = value
                                     Layout.preferredWidth: 100 
                                 }
                             }
@@ -362,21 +483,15 @@ Item {
                         id: sceneRoot
                         Robot {
                             Behavior on rotation1 {
-                                SmoothedAnimation {
-                                    velocity: 100
-                                }
+                                SmoothedAnimation { velocity: root.animVelocity }
                             }
                             
                             Behavior on movement1 {
-                                SmoothedAnimation {
-                                    velocity: 100
-                                }
+                                SmoothedAnimation { velocity: root.animVelocity }
                             }
 
                             Behavior on rotation2 {
-                                SmoothedAnimation {
-                                    velocity: 100
-                                }
+                                SmoothedAnimation { velocity: root.animVelocity }
                             }
 
                             id: robot 
@@ -415,108 +530,108 @@ Item {
                 }
             }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 150
-                radius: 12
-                color: panelBg
-                border.color: panelBorder
-                border.width: 1
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 10
-                    Label {
-                        text: "Calibrar camara"
-                        color: textColor
-                        font.pixelSize: 13
-                        font.bold: true
-                    }
-                    Flow {
-                        Layout.fillWidth: true
-                        spacing: 12
-                        flow: Flow.LeftToRight
+            // Rectangle {
+            //     Layout.fillWidth: true
+            //     Layout.preferredHeight: 150
+            //     radius: 12
+            //     color: panelBg
+            //     border.color: panelBorder
+            //     border.width: 1
+            //     ColumnLayout {
+            //         anchors.fill: parent
+            //         anchors.margins: 10
+            //         spacing: 10
+            //         Label {
+            //             text: "Calibrar camara"
+            //             color: textColor
+            //             font.pixelSize: 13
+            //             font.bold: true
+            //         }
+            //         Flow {
+            //             Layout.fillWidth: true
+            //             spacing: 12
+            //             flow: Flow.LeftToRight
 
-                        ColumnLayout {
-                            width: 130
-                            spacing: 3
-                            Label { text: "Yaw (deg)"; color: mutedColor; font.pixelSize: 11 }
-                            UnixSpinBox {
-                                Layout.fillWidth: true
-                                from: -180; to: 180; step: 1
-                                decimals: 0
-                                value: root.camYaw
-                                onValueEdited: function(v) { root.camYaw = v }
-                            }
-                        }
+            //             ColumnLayout {
+            //                 width: 130
+            //                 spacing: 3
+            //                 Label { text: "Yaw (deg)"; color: mutedColor; font.pixelSize: 11 }
+            //                 UnixSpinBox {
+            //                     Layout.fillWidth: true
+            //                     from: -180; to: 180; step: 1
+            //                     decimals: 0
+            //                     value: root.camYaw
+            //                     onValueEdited: function(v) { root.camYaw = v }
+            //                 }
+            //             }
 
-                        ColumnLayout {
-                            width: 130
-                            spacing: 3
-                            Label { text: "Tilt (deg)"; color: mutedColor; font.pixelSize: 11 }
-                            UnixSpinBox {
-                                Layout.fillWidth: true
-                                from: -85; to: 90; step: 1
-                                decimals: 0
-                                value: root.camTilt
-                                onValueEdited: function(v) { root.camTilt = v }
-                            }
-                        }
+            //             ColumnLayout {
+            //                 width: 130
+            //                 spacing: 3
+            //                 Label { text: "Tilt (deg)"; color: mutedColor; font.pixelSize: 11 }
+            //                 UnixSpinBox {
+            //                     Layout.fillWidth: true
+            //                     from: -85; to: 90; step: 1
+            //                     decimals: 0
+            //                     value: root.camTilt
+            //                     onValueEdited: function(v) { root.camTilt = v }
+            //                 }
+            //             }
 
-                        ColumnLayout {
-                            width: 130
-                            spacing: 3
-                            Label { text: "Objetivo X"; color: mutedColor; font.pixelSize: 11 }
-                            UnixSpinBox {
-                                Layout.fillWidth: true
-                                from: -2000; to: 2000; step: 1
-                                decimals: 0
-                                value: root.camTargetX
-                                onValueEdited: function(v) { root.camTargetX = v }
-                            }
-                        }
+            //             ColumnLayout {
+            //                 width: 130
+            //                 spacing: 3
+            //                 Label { text: "Objetivo X"; color: mutedColor; font.pixelSize: 11 }
+            //                 UnixSpinBox {
+            //                     Layout.fillWidth: true
+            //                     from: -2000; to: 2000; step: 1
+            //                     decimals: 0
+            //                     value: root.camTargetX
+            //                     onValueEdited: function(v) { root.camTargetX = v }
+            //                 }
+            //             }
 
-                        ColumnLayout {
-                            width: 130
-                            spacing: 3
-                            Label { text: "Objetivo Y"; color: mutedColor; font.pixelSize: 11 }
-                            UnixSpinBox {
-                                Layout.fillWidth: true
-                                from: -2000; to: 2000; step: 1
-                                decimals: 0
-                                value: root.camHeight
-                                onValueEdited: function(v) { root.camHeight = v }
-                            }
-                        }
+            //             ColumnLayout {
+            //                 width: 130
+            //                 spacing: 3
+            //                 Label { text: "Objetivo Y"; color: mutedColor; font.pixelSize: 11 }
+            //                 UnixSpinBox {
+            //                     Layout.fillWidth: true
+            //                     from: -2000; to: 2000; step: 1
+            //                     decimals: 0
+            //                     value: root.camHeight
+            //                     onValueEdited: function(v) { root.camHeight = v }
+            //                 }
+            //             }
 
-                        ColumnLayout {
-                            width: 130
-                            spacing: 3
-                            Label { text: "Distancia (Z)"; color: mutedColor; font.pixelSize: 11 }
-                            UnixSpinBox {
-                                Layout.fillWidth: true
-                                from: 200; to: 5000; step: 1
-                                decimals: 0
-                                value: root.camDistance
-                                onValueEdited: function(v) { root.camDistance = v }
-                            }
-                        }
+            //             ColumnLayout {
+            //                 width: 130
+            //                 spacing: 3
+            //                 Label { text: "Distancia (Z)"; color: mutedColor; font.pixelSize: 11 }
+            //                 UnixSpinBox {
+            //                     Layout.fillWidth: true
+            //                     from: 200; to: 5000; step: 1
+            //                     decimals: 0
+            //                     value: root.camDistance
+            //                     onValueEdited: function(v) { root.camDistance = v }
+            //                 }
+            //             }
 
-                        ColumnLayout {
-                            width: 130
-                            spacing: 3
-                            Label { text: "FOV (deg)"; color: mutedColor; font.pixelSize: 11 }
-                            UnixSpinBox {
-                                Layout.fillWidth: true
-                                from: -900; to: 90; step: 1
-                                decimals: 0
-                                value: root.camFov
-                                onValueEdited: function(v) { root.camFov = v }
-                            }
-                        }
-                    }
-                }
-            }
+            //             ColumnLayout {
+            //                 width: 130
+            //                 spacing: 3
+            //                 Label { text: "FOV (deg)"; color: mutedColor; font.pixelSize: 11 }
+            //                 UnixSpinBox {
+            //                     Layout.fillWidth: true
+            //                     from: -900; to: 90; step: 1
+            //                     decimals: 0
+            //                     value: root.camFov
+            //                     onValueEdited: function(v) { root.camFov = v }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 
@@ -528,9 +643,8 @@ Item {
                 rot1Slider.value = root.angrotacion1
         }
         function onMovdistance1Changed() {
-            var scaledMov = root.movdistance1 * 10
-            if (movSlider.value !== scaledMov)
-                movSlider.value = scaledMov
+            if (movSlider.value !== root.movdistance1)
+                movSlider.value = root.movdistance1
         }
         function onAngrotacion2Changed() {
             if (rot2Slider.value !== root.angrotacion2)

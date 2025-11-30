@@ -8,7 +8,7 @@ function TrayInt = InterpolarTrayectoria(TrayBruta, paso, Z_cut)
     if nargin < 3, error('Z_cut debe ser proporcionado.'); end
     TrayInt = [];
     
-    % --- 1. PREPARACIÓN DE GRUPOS VÁLIDOS (Filtrado de FLAG=0) ---
+    % --- 1. PREPARACI  N DE GRUPOS V  LIDOS (Filtrado de FLAG=0) ---
     GruposValidos = {};
     num_grupos_inicial = 0;
     num_grupos_filtrados = 0;
@@ -37,7 +37,7 @@ function TrayInt = InterpolarTrayectoria(TrayBruta, paso, Z_cut)
         Cortar_Flag = g(:,4); 
         Flag_bloque = Cortar_Flag(1);
         
-        % === CORRECCIÓN CLAVE DE Z ===
+        % === CORRECCI  N CLAVE DE Z ===
         % Si es CORTE (1), forzamos Z = Z_cut.
         if Flag_bloque == 1
             Z = Z_cut * ones(size(X));
@@ -47,14 +47,14 @@ function TrayInt = InterpolarTrayectoria(TrayBruta, paso, Z_cut)
         end
         % ==============================
         
-        % Limpieza de NaNs y lógica de Z constante
+        % Limpieza de NaNs y l  gica de Z constante
         nan_rows = isnan(X) | isnan(Y);
         X(nan_rows) = []; Y(nan_rows) = []; Z(nan_rows) = []; Cortar_Flag(nan_rows) = [];
         
         Z_initial = Z(1);
         Z = Z_initial * ones(size(Z));
         
-        % --- Cálculo de largo acumulado y Interpolación ---
+        % --- C  lculo de largo acumulado y Interpolaci  n ---
         dist = [0; cumsum(sqrt(diff(X).^2 + diff(Y).^2))];
         L = dist(end);
         
@@ -74,5 +74,5 @@ function TrayInt = InterpolarTrayectoria(TrayBruta, paso, Z_cut)
             TrayInt = [TrayInt; NaN(1,4)];
         end
     end
-    fprintf('✨ Se filtraron %d grupos con FLAG=0. Interpolados %d grupos finales (Corte/Guardado).\n', num_grupos_inicial - num_grupos_filtrados, num_grupos_filtrados);
+    fprintf('    Se filtraron %d grupos con FLAG=0. Interpolados %d grupos finales (Corte/Guardado).\n', num_grupos_inicial - num_grupos_filtrados, num_grupos_filtrados);
 end

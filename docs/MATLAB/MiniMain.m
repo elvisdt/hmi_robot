@@ -1,21 +1,21 @@
 %% --- MiniMain Final Optimizada SCARA-CNC P-R-R ---
 clc; clear; close all;
 
-%% --- Parámetros del robot (Ejemplo) ---
+%% --- Par  metros del robot (Ejemplo) ---
 L1 = 0.6;   % mm
 L2 = 0.65;  % mm
 
-%% --- Parámetros de trayectoria (Ejemplo) ---
+%% --- Par  metros de trayectoria (Ejemplo) ---
 Z_home = 200;   % altura de guardado [mm]
 Z_cut  = 150;  % altura de corte [mm]
-paso   = 1;     % resolución de interpolación [mm] <--- AHORA EN MM
+paso   = 1;     % resoluci  n de interpolaci  n [mm] <--- AHORA EN MM
 ratio  = 0.3;
 Speed_traslado = 12000; % Velocidad de traslado [mm/min] <--- AHORA EN MM/MIN
 Speed_cut      = ratio*Speed_traslado;
 
 %% --- Leer archivo de trayectoria ---
 [archivo, ruta] = uigetfile('*.txt','Selecciona archivo de trayectoria');
-if isequal(archivo,0), error('No se seleccionó archivo'); end
+if isequal(archivo,0), error('No se seleccion   archivo'); end
 filename = fullfile(ruta, archivo);
 
 %% --- Leer grupos e interpolar ---
@@ -25,17 +25,17 @@ TrayInt      = InterpolarTrayectoria(GruposBrutos, paso);
 %% --- Planificar trayectoria completa ---
 TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_cut, Speed_traslado);
 
-%% --- Cinemática inversa ---
+%% --- Cinem  tica inversa ---
 TrayArt = CinematicaInversa(TrayFinal(:,1:5), L1, L2); % Nx5 [th1 th2 d1 flag v]
 
-%% --- Cinemática directa vectorizada ---
+%% --- Cinem  tica directa vectorizada ---
 AnimarTrayectoria(TrayArt, L1, L2);
 
 % %% --- Inicializar figura ---
 % figure('Color',[1 1 1]);
 % ax = gca; hold(ax,'on'); grid(ax,'on'); axis(ax,'equal');
 % xlabel('X [m]'); ylabel('Y [m]'); zlabel('Z [m]');
-% title('Animación SCARA-P-R-R con Trayectoria');
+% title('Animaci  n SCARA-P-R-R con Trayectoria');
 % view(45,30);
 % 
 % % Limites del eje
@@ -45,7 +45,7 @@ AnimarTrayectoria(TrayArt, L1, L2);
 % ylim(ax,[-Ltot-padding, Ltot+padding]);
 % zlim(ax,[0, max(1.2*Z_home, Z_cut+0.1)]);
 % 
-% % Dibujar trayectoria de referencia (línea fina)
+% % Dibujar trayectoria de referencia (l  nea fina)
 % plot3(ax, TrayFinal(:,1), TrayFinal(:,2), TrayFinal(:,3), 'k:', 'LineWidth', 0.6);
 % 
 % % Inicializar punto efector final
@@ -61,14 +61,14 @@ AnimarTrayectoria(TrayArt, L1, L2);
 % % Handles del robot
 % handles = struct();
 
-% %% --- Animación ---
+% %% --- Animaci  n ---
 % dt_min = 0.002; dt_max = 0.05;
 % N = size(TrayFinal,1);
 % 
 % for i = 1:N
 %     if any(isnan(TrayFinal(i,:))), continue; end
 % 
-%     % Posiciones de la cinemática directa
+%     % Posiciones de la cinem  tica directa
 %     pos_joints = [O_all(i,:); P_all(i,:); A_all(i,:); B_all(i,:)];
 % 
 %     % Dibujar/actualizar robot
@@ -89,7 +89,7 @@ AnimarTrayectoria(TrayArt, L1, L2);
 %     % Actualizar punto efector
 %     set(punto,'XData',p2(1),'YData',p2(2),'ZData',p2(3));
 % 
-%     % Pausa según velocidad
+%     % Pausa seg  n velocidad
 %     if i>1
 %         dist = norm(p2 - TrayFinal(i-1,1:3));
 %         vel  = max(TrayFinal(i,5),1e-6);
@@ -101,4 +101,4 @@ AnimarTrayectoria(TrayArt, L1, L2);
 %     drawnow limitrate;
 % end
 % 
-% disp('✅ Animación SCARA-P-R-R completa con robot y trayectoria.');
+% disp('    Animaci  n SCARA-P-R-R completa con robot y trayectoria.');

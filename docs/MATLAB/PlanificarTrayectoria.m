@@ -4,7 +4,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
 %
 % FLAG KEY: 1=Corte, 2=Reposo, 3=Traslado Seguro.
     
-    % --- 1. Definición y Conversión de Entradas ---
+    % --- 1. Definici  n y Conversi  n de Entradas ---
     if nargin < 4, paso = 1; end         
     if nargin < 5, Speed_cut = 5000; end    
     if nargin < 6, Speed_traslado = 15000; end 
@@ -17,7 +17,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     
     TrayFinal = [];
     
-    % --- 2. CONSTRUCCIÓN DE LA TRAYECTORIA INICIAL [X Y Z FLAG V_DESEADA] ---
+    % --- 2. CONSTRUCCI  N DE LA TRAYECTORIA INICIAL [X Y Z FLAG V_DESEADA] ---
     idx_nan = find(isnan(TrayInt(:,1)));
     idx_nan = [0; idx_nan; size(TrayInt,1)+1];
     
@@ -30,7 +30,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
         nb = size(bloque,1);
         flag_bloque = bloque(1,4); 
         
-        % 2.2. Manejo de Transiciones y Enlaces (Lógica de Salto Completo)
+        % 2.2. Manejo de Transiciones y Enlaces (L  gica de Salto Completo)
         
         if isempty(TrayFinal)
             % 1) INICIO ABSOLUTO (Home(2) -> Traslado Seguro(3) -> Bajada)
@@ -38,7 +38,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
             V_deseada = V_traslado_ms * ones(nb,1);
             V_deseada(bloque(:,4) == 2) = 0; % FLAG=2 (Reposo) -> V=0
             
-            p_end_safe = bloque(end, 1:3); % Último punto del traslado seguro (a Z_home)
+            p_end_safe = bloque(end, 1:3); %   ltimo punto del traslado seguro (a Z_home)
             
             % ** INSERTAR LA BAJADA VERTICAL (PLUNGE) **
             Z_cut_target = Z_cut; 
@@ -61,21 +61,21 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
             TrayFinal = [TrayFinal; bloque_vel; trans_ini_plunge(2:end,:)]; 
             
         else
-            % 2) TRANSICIÓN ENTRE BLOQUES (El NaN gap) - SALTO COMPLETO
+            % 2) TRANSICI  N ENTRE BLOQUES (El NaN gap) - SALTO COMPLETO
             p_prev = TrayFinal(end,1:3);    
             p_ini  = bloque(1,1:3);         
             Z_cut_prev = p_prev(3);
             Z_cut_next = p_ini(3); 
             
-            % --- CORRECCIÓN CLAVE: Punto de Transición ---
-            % Se inserta un punto idéntico al final del corte, pero marcado como FLAG=3.
+            % --- CORRECCI  N CLAVE: Punto de Transici  n ---
+            % Se inserta un punto id  ntico al final del corte, pero marcado como FLAG=3.
             % Esto rompe la continuidad visual del color amarillo en Z_cut.
             P_transicion = [p_prev(1), p_prev(2), Z_cut_prev, 3, V_traslado_ms];
             
             % A) subida a Z_home (LIFT)
             n1 = max(2, ceil(abs(Z_home - Z_cut_prev)/paso));
             trans_up = [];
-            if abs(Z_home - Z_cut_prev) > 1e-6 % Solo si no está ya en Z_home
+            if abs(Z_home - Z_cut_prev) > 1e-6 % Solo si no est   ya en Z_home
                 Z_up = linspace(Z_cut_prev, Z_home, n1)';
                 trans_up = [p_prev(1)*ones(n1-1,1), p_prev(2)*ones(n1-1,1), Z_up(2:end), 3*ones(n1-1,1), V_traslado_ms*ones(n1-1,1)];
             end
@@ -94,19 +94,19 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
                 Z_down = linspace(Z_home, Z_cut_next, n3)';
                 trans_down = [p_ini(1)*ones(n3-1,1), p_ini(2)*ones(n3-1,1), Z_down(2:end), 3*ones(n3-1,1), V_traslado_ms*ones(n3-1,1)];
                 
-                % Último punto de bajada = inicio de corte (FLAG=1, V=0)
+                %   ltimo punto de bajada = inicio de corte (FLAG=1, V=0)
                 trans_down(end,4) = 1; 
                 trans_down(end,5) = 0; 
             end
             
-            % Concatenar: Punto de transición (rompe color), LIFT, XY, PLUNGE
+            % Concatenar: Punto de transici  n (rompe color), LIFT, XY, PLUNGE
             TrayFinal = [TrayFinal; P_transicion; trans_up; trans_xy; trans_down];
         end
         
         % 3) Bloque de trabajo principal (FLAG=1) o Reposo (FLAG=2/3)
         if flag_bloque == 1 
             V_deseada = V_cut_ms * ones(nb,1);
-            V_deseada(end) = 0; % Forzar detención al final del corte
+            V_deseada(end) = 0; % Forzar detenci  n al final del corte
         elseif flag_bloque == 2 
             V_deseada = zeros(nb,1); 
         elseif flag_bloque == 3 
@@ -131,15 +131,15 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
             TrayFinal = [TrayFinal; final_up];
         end
         
-        % Asegurar que el último punto sea de Reposo (FLAG=2, V=0)
+        % Asegurar que el   ltimo punto sea de Reposo (FLAG=2, V=0)
         if TrayFinal(end, 4) ~= 2
-             % Usamos el último XY alcanzado y Z_home
+             % Usamos el   ltimo XY alcanzado y Z_home
              TrayFinal = [TrayFinal; p_fin(1), p_fin(2), Z_home, 2, 0]; 
         end
     end
 
 % --------------------------------------------------------------------------------
-%  🚀 Aplicación del Perfil de Velocidad Trapezoidal (Sección 3)
+%       Aplicaci  n del Perfil de Velocidad Trapezoidal (Secci  n 3)
 % --------------------------------------------------------------------------------
 
     V_deseada = TrayFinal(:, 5);
@@ -148,13 +148,13 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     V_perfilada = zeros(N, 1);
     dL = dL_cart;
     
-    % 3.1. Iteración hacia adelante (Aceleración)
+    % 3.1. Iteraci  n hacia adelante (Aceleraci  n)
     V_perfilada(1) = 0; 
     for i = 2:N
         V_prev = V_perfilada(i-1);          
         V_target = V_deseada(i);            
         
-        % Forzar V=0 en puntos de reposo o inicio/fin de corte/transición
+        % Forzar V=0 en puntos de reposo o inicio/fin de corte/transici  n
         if Flags(i) == 2 || Flags(i-1) == 2 || (Flags(i) == 1 && Flags(i-1) ~= 1) || (Flags(i) == 3 && Flags(i-1) == 1)
             V_target = 0; 
             V_prev = 0;   
@@ -166,7 +166,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
         V_perfilada(i) = min(V_target, V_max_acel);
     end
     
-    % 3.2. Iteración hacia atrás (Desaceleración)
+    % 3.2. Iteraci  n hacia atr  s (Desaceleraci  n)
     V_perfilada(N) = 0; 
     for i = N-1:-1:1
         V_next = V_perfilada(i+1);
@@ -186,10 +186,10 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     TrayFinal(:, 5) = V_perfilada;
     
 % --------------------------------------------------------------------------------
-%  📏 Conversión y Limpieza Final (Sección 4)
+%       Conversi  n y Limpieza Final (Secci  n 4)
 % --------------------------------------------------------------------------------
 
-    % Conversión de [mm] a [m] para las coordenadas
+    % Conversi  n de [mm] a [m] para las coordenadas
     TrayFinal(:,1:3) = TrayFinal(:,1:3)/1000;         
     
     % Manejo de valores no finitos (para estabilidad)
@@ -197,5 +197,5 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     TrayFinal(~isfinite(TrayFinal(:,5)),5) = vmin;
     TrayFinal(TrayFinal(:,5) < vmin,5) = vmin;
     
-    fprintf('✨ Trayectoria final planificada y perfilada (m y m/s). V_cut=%g m/s, V_traslado=%g m/s. A_max=%g m/s^2\n', V_cut_ms, V_traslado_ms, A_max_ms2);
+    fprintf('    Trayectoria final planificada y perfilada (m y m/s). V_cut=%g m/s, V_traslado=%g m/s. A_max=%g m/s^2\n', V_cut_ms, V_traslado_ms, A_max_ms2);
 end

@@ -43,6 +43,12 @@ ApplicationWindow {
         function onPointsReady(points) {
             viewer2d.setPoints(points)
         }
+        function onBoundsReady(xmin, xmax, ymin, ymax) {
+            viewer2d.setBounds(xmin, xmax, ymin, ymax)
+        }
+        function onImageReady(path) {
+            viewer2d.setImage(path)
+        }
         function onStatusMessage(text) {
             console.log(text)
         }
@@ -128,6 +134,13 @@ ApplicationWindow {
                         accentColor: app.accentColor
                         palette: app.palette
                         onDxfSelected: function(fileUrl) { loadDxfFile(fileUrl) }
+                        onCsvSelected: function(fileUrl) { loadCsvFile(fileUrl) }
+                        onRobotTrajSelected: function(fileUrl) { robotView.setTrajectoryFile(fileUrl) }
+                        onRobotPlay: robotView.play()
+                        onRobotStop: robotView.stop()
+                        onRobotHome: robotView.goHome()
+                        onRobotReset: robotView.resetPose()
+                        onRobotSpeedChanged: function(factor) { robotView.setPlaybackSpeed(factor) }
                     }
 
                     // ======================== VISTA 2D ========================
@@ -173,5 +186,26 @@ ApplicationWindow {
         }
     }
 
-    Component.onCompleted: viewer2d.setPoints([])
+    function loadCsvFile(url) {
+        if (!url || url.toString().length === 0)
+            return
+        console.log("CSV seleccionado:", url)
+        if (backend && backend.loadCsvXY) {
+            backend.loadCsvXY(url, viewer2d.width, viewer2d.height)
+        } else {
+            viewer2d.setPoints([])
+        }
+    }
+
+    Component.onCompleted: {
+        viewer2d.setPoints([])
+        robotView.setPlaybackSpeed(controlsPanel.robotSpeedValue)
+    }
+
+    Connections {
+        target: robotView
+        function onTrajPlayingChanged() {
+            controlsPanel.robotPlaying = robotView.trajPlaying
+        }
+    }
 }

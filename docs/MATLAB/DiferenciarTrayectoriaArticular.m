@@ -1,7 +1,7 @@
 function [Q_dot, Q_ddot, Tiempos] = DiferenciarTrayectoriaArticular(TrayArt, params)
 % DIFERENCIARTRAYECTORIAARTICULAR - Calcula Q_dot y Q_ddot usando diferencias finitas.
     
-    % --- 0. Extracción y Preparación ---
+    % --- 0. Extracci  n y Preparaci  n ---
     Q = TrayArt(:, 1:3); % Posiciones Articulares (d1, th2, th3)
     V_ms = TrayArt(:, 5); % Velocidad Cartesiana planificada (m/s)
     num_puntos = size(Q, 1);
@@ -14,32 +14,32 @@ function [Q_dot, Q_ddot, Tiempos] = DiferenciarTrayectoriaArticular(TrayArt, par
         dL_cart = params.paso / 1000; % paso en metros
     else
         dL_cart = 0.001;
-        warning('Parámetro "paso" no encontrado en params. Asumiendo 1 mm (0.001 m).');
+        warning('Par  metro "paso" no encontrado en params. Asumiendo 1 mm (0.001 m).');
     end
     
     if isfield(params, 'Fs')
-        dt_min = 1 / params.Fs; % Usamos el periodo de muestreo si está disponible
+        dt_min = 1 / params.Fs; % Usamos el periodo de muestreo si est   disponible
     else
-        dt_min = 0.005; % 5 ms, una asunción razonable
+        dt_min = 0.005; % 5 ms, una asunci  n razonable
     end
     
-    % --- 1. Cálculo de Tiempos (dt) ---
-    dL_min = dL_cart * 0.01; % Umbral de distancia mínima (para puntos repetidos)
+    % --- 1. C  lculo de Tiempos (dt) ---
+    dL_min = dL_cart * 0.01; % Umbral de distancia m  nima (para puntos repetidos)
     
     for i = 2:num_puntos
-        dt = dt_min; % Inicializamos con el tiempo mínimo por defecto
+        dt = dt_min; % Inicializamos con el tiempo m  nimo por defecto
         
         % 1. Manejo de distancias/velocidades insignificantes
         if dL_cart < dL_min && V_ms(i) < 1e-6
              % Si la distancia y la velocidad son casi cero, forzamos dt_min
              dt = dt_min;
         
-        % 2. Manejo de puntos de detención forzada (V=0)
+        % 2. Manejo de puntos de detenci  n forzada (V=0)
         elseif V_ms(i) < 1e-6 
             % Si V_perfilada es cero (inicio/fin de corte), forzamos dt_min
             dt = dt_min; 
             
-        % 3. Cálculo normal de tiempo
+        % 3. C  lculo normal de tiempo
         else
             V_prom_segmento = (V_ms(i) + V_ms(i-1)) / 2;
             
@@ -51,12 +51,12 @@ function [Q_dot, Q_ddot, Tiempos] = DiferenciarTrayectoriaArticular(TrayArt, par
             end
         end
         
-        Tiempos(i) = Tiempos(i-1) + max(dt, 1e-9); % Acumulación del tiempo
+        Tiempos(i) = Tiempos(i-1) + max(dt, 1e-9); % Acumulaci  n del tiempo
     end
     
-    % --- 2. Diferenciación Numérica (Q_dot y Q_ddot) ---
+    % --- 2. Diferenciaci  n Num  rica (Q_dot y Q_ddot) ---
     
-    for j = 1:3 % Para cada articulación (d1, th2, th3)
+    for j = 1:3 % Para cada articulaci  n (d1, th2, th3)
         % Diferencia Forward (Punto inicial)
         dt_ini = Tiempos(2) - Tiempos(1);
         Q_dot(1, j) = (Q(2, j) - Q(1, j)) / dt_ini;
@@ -70,7 +70,7 @@ function [Q_dot, Q_ddot, Tiempos] = DiferenciarTrayectoriaArticular(TrayArt, par
         dt_fin = Tiempos(num_puntos) - Tiempos(num_puntos-1);
         Q_dot(num_puntos, j) = (Q(num_puntos, j) - Q(num_puntos-1, j)) / dt_fin;
         
-        % Cálculo de Q_ddot a partir de Q_dot (mismo método)
+        % C  lculo de Q_ddot a partir de Q_dot (mismo m  todo)
         Q_ddot(1, j) = (Q_dot(2, j) - Q_dot(1, j)) / dt_ini;
         
         for i = 2:num_puntos-1
@@ -81,9 +81,9 @@ function [Q_dot, Q_ddot, Tiempos] = DiferenciarTrayectoriaArticular(TrayArt, par
         Q_ddot(num_puntos, j) = (Q_dot(num_puntos, j) - Q_dot(num_puntos-1, j)) / dt_fin;
     end
     
-    % --- 2.5. APLICACIÓN DE LÍMITES FÍSICOS ARTICULARES (CORRECCIÓN CRÍTICA) ---
+    % --- 2.5. APLICACI  N DE L  MITES F  SICOS ARTICULARES (CORRECCI  N CR  TICA) ---
     % Esto asegura que las velocidades y aceleraciones calculadas no superen
-    % las capacidades físicas del motor (que es donde reside el cuello de botella real).
+    % las capacidades f  sicas del motor (que es donde reside el cuello de botella real).
     
     if isfield(params, 'Qdot_max')
         % Limitar Velocidad (Q_dot)
@@ -94,25 +94,25 @@ function [Q_dot, Q_ddot, Tiempos] = DiferenciarTrayectoriaArticular(TrayArt, par
     end
     
     if isfield(params, 'Qddot_max')
-        % Limitar Aceleración (Q_ddot)
+        % Limitar Aceleraci  n (Q_ddot)
         for j = 1:3 
             % Aplica clipping: Q_ddot se limita a [-Qddot_max, Qddot_max]
             Q_ddot(:, j) = max(-params.Qddot_max(j), min(params.Qddot_max(j), Q_ddot(:, j)));
         end
     end
 
-    % --- 3. Suavizado de la Aceleración Articular (Q_ddot) ---
-    % Se aplica el suavizado DESPUÉS de limitar, para eliminar el ruido residual.
+    % --- 3. Suavizado de la Aceleraci  n Articular (Q_ddot) ---
+    % Se aplica el suavizado DESPU  S de limitar, para eliminar el ruido residual.
     
     % Ventana de suavizado: 5% del total de puntos (ajustable)
     window_size = max(3, 2 * floor(num_puntos * 0.05 / 2) + 1); 
     
     for j = 1:3 
-        % Aplicar filtro de media móvil a Q_ddot
+        % Aplicar filtro de media m  vil a Q_ddot
         Q_ddot(:, j) = smoothdata(Q_ddot(:, j), 'movmean', window_size);
     end
     
-    % --- 4. Limpieza Final de Ruido Numérico ---
+    % --- 4. Limpieza Final de Ruido Num  rico ---
     Q_dot(~isfinite(Q_dot)) = 0;
     Q_ddot(~isfinite(Q_ddot)) = 0;
     Q_dot(abs(Q_dot) < 1e-9) = 0; 

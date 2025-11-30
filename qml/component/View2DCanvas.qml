@@ -1,225 +1,262 @@
 import QtQuick
 import QtQuick.Layouts
 
-Canvas {
-    id: canvas
+Item {
+    id: root
 
+    // Estilo y datos
     property var palette: ({})
-    property var points: []
+    property var points: []                  // puntos crudos (x,y,flag,break)
+    property var drawPoints: []              // buffer copiado para pintar
     property color accentColor: palette.accent || "#0a84ff"
     property bool showAxes: true
     property color axisXColor: "#ef4444"
     property color axisYColor: "#10b981"
-    property real rotationDeg: -90
-    property real worldXMin: 0
-    property real worldXMax: 600
-    property real worldYMin: -600
-    property real worldYMax: 600
-    property real gridStep: 100
-    property real marginRatio: 0.08
-    property bool showWorkArea: true
-
-    // area de trbajo
-    property real workXMin: -1200
-    property real workXMax: 1200
-    property real workYMin: -1200
-    property real workYMax: 1200
-    property color workAreaFill: palette.workAreaFill || Qt.rgba(0.31, 0.62, 1, 0.09)
-    property color workAreaStroke: palette.workAreaStroke || Qt.rgba(0.65, 0.21, 33, 0.31)
-    
+    property color canvasColor: palette.canvasBg || "#0f172a"
+    property color gridColor: palette.grid || "#1f2a3d"
     property color unitColor: palette.label || "#9ca3af"
-    property color canvasColor: palette.canvasBg || "#f9fafc"
-    property color gridColor: palette.grid || "#e7ebf3"
+
+    // Ajustes de vista
+    property real gridStep: 50
+    property real marginRatio: 0.05
+    property real padFactor: 0.2
+    property bool showWorkArea: false
+    property real axisMinX: -300
+    property real axisMaxX: 300
+    property real axisMinY: -300
+    property real axisMaxY: 300
+    property real rotationDeg: 0
+    property real minSpan: 50
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    antialiasing: true
 
-    onPointsChanged: requestPaint()
-    onPaletteChanged: requestPaint()
-    onAccentColorChanged: requestPaint()
-    onCanvasColorChanged: requestPaint()
-    onGridColorChanged: requestPaint()
-    onUnitColorChanged: requestPaint()
-    onAxisXColorChanged: requestPaint()
-    onAxisYColorChanged: requestPaint()
-    onShowAxesChanged: requestPaint()
-    onRotationDegChanged: requestPaint()
-    onMarginRatioChanged: requestPaint()
-    onWorldXMinChanged: requestPaint()
-    onWorldXMaxChanged: requestPaint()
-    onWorldYMinChanged: requestPaint()
-    onWorldYMaxChanged: requestPaint()
-    onGridStepChanged: requestPaint()
-    onShowWorkAreaChanged: requestPaint()
-    onWorkXMinChanged: requestPaint()
-    onWorkXMaxChanged: requestPaint()
-    onWorkYMinChanged: requestPaint()
-    onWorkYMaxChanged: requestPaint()
-    onWorkAreaFillChanged: requestPaint()
-    onWorkAreaStrokeChanged: requestPaint()
+    onPointsChanged: setPoints(points)
 
     function setPoints(arr) {
         points = arr || []
-        requestPaint()
+        drawPoints = points.slice()
+        if (drawPoints.length > 0) {
+            var minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9
+            for (var i = 0; i < drawPoints.length; i++) {
+                var p = drawPoints[i]
+                if (!p || p.break || p.x === undefined || p.y === undefined) continue
+                if (p.x < minx) minx = p.x
+                if (p.x > maxx) maxx = p.x
+                if (p.y < miny) miny = p.y
+                if (p.y > maxy) maxy = p.y
+            }
+            if (minx < 1e9) {
+                var maxAbs = Math.max(Math.abs(minx), Math.abs(maxx), Math.abs(miny), Math.abs(maxy))
+                var pad = Math.max(10, maxAbs * padFactor)
+                var span = maxAbs + pad
+                axisMinX = -span
+                axisMaxX = span
+                axisMinY = -span
+                axisMaxY = span
+                gridStep = niceStep((axisMaxX - axisMinX), 18)
+            }
+        } else {
+            // reset a rango fijo
+            axisMinX = -300
+            axisMaxX = 300
+            axisMinY = -300
+            axisMaxY = 300
+            gridStep = 50
+        }
+        canvas.requestPaint()
     }
 
-    onPaint: {
-        var ctx = getContext("2d")
-        ctx.clearRect(0, 0, width, height)
-        ctx.fillStyle = canvasColor
-        ctx.fillRect(0, 0, width, height)
+    function fitToBounds(xmin, xmax, ymin, ymax) {
+        if (xmin === undefined || xmax === undefined || ymin === undefined || ymax === undefined)
+            return
+        var maxAbs = Math.max(Math.abs(xmin), Math.abs(xmax), Math.abs(ymin), Math.abs(ymax))
+        var pad = Math.max(10, maxAbs * padFactor)
+        var span = maxAbs + pad
+        axisMinX = -span
+        axisMaxX = span
+        axisMinY = -span
+        axisMaxY = span
+        gridStep = niceStep((axisMaxX - axisMinX), 18)
+        canvas.requestPaint()
+    }
 
-        // ajustar rotacion y escala para que el contenido rote sin recortes
-        var angle = rotationDeg * Math.PI / 180
-        var cosA = Math.cos(angle)
-        var sinA = Math.sin(angle)
-        var rotW = Math.abs(width * cosA) + Math.abs(height * sinA)
-        var rotH = Math.abs(width * sinA) + Math.abs(height * cosA)
-        var fit = Math.min(width / rotW, height / rotH)
-        ctx.save()
-        ctx.translate(width / 2, height / 2)
-        ctx.scale(fit, fit)
-        ctx.rotate(angle)
-        ctx.translate(-width / 2, -height / 2)
+    function niceStep(range, targetLines) {
+        if (range <= 0) return gridStep
+        var rough = range / targetLines
+        var pow10 = Math.pow(10, Math.floor(Math.log10(rough)))
+        var frac = rough / pow10
+        var step
+        if (frac < 1.5) step = 1
+        else if (frac < 3.5) step = 2
+        else if (frac < 7.5) step = 5
+        else step = 10
+        return step * pow10
+    }
 
-        // escalado a espacio de trabajo fijo (mm)
-        var margin = Math.min(width, height) * marginRatio
-        var innerW = width - 2 * margin
-        var innerH = height - 2 * margin
-        var rangeX = Math.max(worldXMax - worldXMin, 1e-6)
-        var rangeY = Math.max(worldYMax - worldYMin, 1e-6)
-        var scale = Math.min(innerW / rangeX, innerH / rangeY)
-        var extraX = Math.max(0, (innerW - rangeX * scale) / 2)
-        var extraY = Math.max(0, (innerH - rangeY * scale) / 2)
-        function xPx(wx) { return margin + extraX + (wx - worldXMin) * scale }
-        function yPx(wy) { return margin + extraY + (worldYMax - wy) * scale }
+    function pan(dx, dy) {
+        axisMinX += dx
+        axisMaxX += dx
+        axisMinY += dy
+        axisMaxY += dy
+        canvas.requestPaint()
+    }
 
-        function invX(px) { return (px - margin - extraX) / scale + worldXMin }
-        function invY(py) { return worldYMax - (py - margin - extraY) / scale }
+    function zoom(factor) {
+        if (factor === 0) return
+        var cx = (axisMinX + axisMaxX) / 2
+        var cy = (axisMinY + axisMaxY) / 2
+        var spanX = Math.max((axisMaxX - axisMinX) * factor, minSpan)
+        var spanY = Math.max((axisMaxY - axisMinY) * factor, minSpan)
+        axisMinX = cx - spanX / 2
+        axisMaxX = cx + spanX / 2
+        axisMinY = cy - spanY / 2
+        axisMaxY = cy + spanY / 2
+        gridStep = niceStep(Math.max(axisMaxX - axisMinX, axisMaxY - axisMinY), 18)
+        canvas.requestPaint()
+    }
 
-        // grid con etiquetas en mm (constante, extendido a toda el area visible)
-        ctx.strokeStyle = gridColor
-        ctx.lineWidth = 1
-        ctx.beginPath()
-        var step = gridStep
-        var visMinX = Math.min(worldXMin, worldXMax, invX(0), invX(width))
-        var visMaxX = Math.max(worldXMin, worldXMax, invX(0), invX(width))
-        var visMinY = Math.min(worldYMin, worldYMax, invY(0), invY(height))
-        var visMaxY = Math.max(worldYMin, worldYMax, invY(0), invY(height))
-        var startX = Math.floor(visMinX / step) * step
-        var endX = Math.ceil(visMaxX / step) * step
-        for (var gx = startX; gx <= endX + 0.001; gx += step) {
-            var px = xPx(gx) + 0.5
-            ctx.moveTo(px, 0)
-            ctx.lineTo(px, height)
-        }
-        var startY = Math.floor(visMinY / step) * step
-        var endY = Math.ceil(visMaxY / step) * step
-        for (var gy = startY; gy <= endY + 0.001; gy += step) {
-            var py = yPx(gy) + 0.5
-            ctx.moveTo(0, py)
-            ctx.lineTo(width, py)
-        }
-        ctx.stroke()
+    Canvas {
+        id: canvas
+        anchors.fill: parent
+        antialiasing: true
 
-        ctx.fillStyle = unitColor
-        ctx.font = "10px sans-serif"
-        for (var gxLab = startX; gxLab <= endX + 0.001; gxLab += step) {
-            var pxLab = xPx(gxLab)
-            if (pxLab >= -20 && pxLab <= width + 20)
-                ctx.fillText(gxLab.toFixed(0), pxLab + 2, margin - 6)
-        }
-        for (var gyLab = startY; gyLab <= endY + 0.001; gyLab += step) {
-            var pyLab = yPx(gyLab)
-            if (pyLab >= -20 && pyLab <= height + 20)
-                ctx.fillText(gyLab.toFixed(0), margin - 26, pyLab + 3)
-        }
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.fillStyle = canvasColor
+            ctx.fillRect(0, 0, width, height)
 
-        if (showWorkArea) {
-            var left = xPx(workXMin)
-            var right = xPx(workXMax)
-            var top = yPx(workYMax)
-            var bottom = yPx(workYMin)
-            var wArea = right - left
-            var hArea = bottom - top
-            ctx.fillStyle = workAreaFill
-            ctx.strokeStyle = workAreaStroke
-            ctx.lineWidth = 2
-            ctx.beginPath()
-            ctx.rect(left, top, wArea, hArea)
-            ctx.fill()
-            ctx.stroke()
-        }
+            ctx.save()
+            ctx.translate(width / 2, height / 2)
+            ctx.rotate(rotationDeg * Math.PI / 180)
+            ctx.translate(-width / 2, -height / 2)
 
-        if (showAxes) {
-            var arrow = 7
-            var xAxisY = yPx(0)
-            var xStart = xPx(visMinX)
-            var xEnd = xPx(visMaxX)
-            ctx.strokeStyle = axisXColor
-            ctx.lineWidth = 1.5
-            ctx.beginPath()
-            ctx.moveTo(xStart, xAxisY + 0.5)
-            ctx.lineTo(xEnd, xAxisY + 0.5)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.moveTo(xEnd, xAxisY + 0.5)
-            ctx.lineTo(xEnd - arrow, xAxisY - arrow * 0.6)
-            ctx.moveTo(xEnd, xAxisY + 0.5)
-            ctx.lineTo(xEnd - arrow, xAxisY + arrow * 0.6)
-            ctx.stroke()
-            ctx.fillStyle = axisXColor
-            ctx.font = "11px sans-serif"
-            ctx.fillText("X", xEnd - 12, xAxisY - 8)
-            //ctx.fillText("X", 0, 0)
-            
+            var marginPx = Math.min(width, height) * marginRatio
+            var innerW = width - 2 * marginPx
+            var innerH = height - 2 * marginPx
+            var rangeX = axisMaxX - axisMinX
+            var rangeY = axisMaxY - axisMinY
+            var centerX = (axisMinX + axisMaxX) / 2
+            var centerY = (axisMinY + axisMaxY) / 2
+            var step = gridStep > 0 ? gridStep : niceStep(Math.max(rangeX, rangeY), 18)
+            var scale = Math.min(innerW / Math.max(rangeX, 1e-6), innerH / Math.max(rangeY, 1e-6))
 
-            var yAxisX = xPx(0)
-            var yStart = yPx(visMinY)
-            var yEnd = yPx(visMaxY)
-            ctx.strokeStyle = axisYColor
-            ctx.beginPath()
-            ctx.moveTo(yAxisX + 0.5, yStart)
-            ctx.lineTo(yAxisX + 0.5, yEnd)
-            ctx.stroke()
-            
-            var yTip = yEnd
-            ctx.beginPath()
-            ctx.moveTo(yAxisX + 0.5, yTip)
-            ctx.lineTo(yAxisX - arrow * 0.6, yTip + arrow)
-            ctx.moveTo(yAxisX + 0.5, yTip)
-            ctx.lineTo(yAxisX + arrow * 0.6, yTip + arrow)
-            ctx.stroke()
-            ctx.fillStyle = axisYColor
-            // ctx.fillText("Y", yAxisX + 8, yTip - 10)
-            ctx.fillText("Y", yAxisX, yTip)
-            // print(yTip, yAxisX)
-        }
+            function xPx(wx) { return marginPx + (wx - (centerX - rangeX / 2)) * scale }
+            function yPx(wy) { return marginPx + ((centerY + rangeY / 2) - wy) * scale }
 
-        ctx.lineWidth = 2
-        ctx.strokeStyle = accentColor
-        ctx.lineJoin = "round"
-        ctx.lineCap = "round"
-        if (points && points.length > 0) {
-            ctx.beginPath()
-            var started = false
-            for (var i = 0; i < points.length; i++) {
-                var q = points[i]
-                if (!q || q.break) {
-                    started = false
-                    continue
-                }
-                if (!started) {
-                    ctx.moveTo(q.x, q.y)
-                    started = true
-                } else {
-                    ctx.lineTo(q.x, q.y)
-                }
+            // Grilla
+            ctx.save()
+            ctx.strokeStyle = gridColor
+            ctx.globalAlpha = 0.6
+            ctx.lineWidth = 1.2
+            var left = centerX - rangeX / 2
+            var right = centerX + rangeX / 2
+            var bottom = centerY - rangeY / 2
+            var top = centerY + rangeY / 2
+
+            var gxStart = Math.floor(left / step) * step
+            var gxEnd = Math.ceil(right / step) * step
+            for (var gx = gxStart; gx <= gxEnd + 0.001; gx += step) {
+                var px = xPx(gx)
+                ctx.beginPath()
+                ctx.moveTo(px, 0)
+                ctx.lineTo(px, height)
+                ctx.stroke()
             }
-            ctx.stroke()
-        }
 
-        ctx.restore()
+            var gyStart = Math.floor(bottom / step) * step
+            var gyEnd = Math.ceil(top / step) * step
+            for (var gy = gyStart; gy <= gyEnd + 0.001; gy += step) {
+                var py = yPx(gy)
+                ctx.beginPath()
+                ctx.moveTo(0, py)
+                ctx.lineTo(width, py)
+                ctx.stroke()
+            }
+            ctx.restore()
+
+            // Etiquetas de grilla
+            ctx.fillStyle = unitColor
+            ctx.font = "10px sans-serif"
+            for (var gxLab = gxStart; gxLab <= gxEnd + 0.001; gxLab += step) {
+                var pxLab = xPx(gxLab)
+                ctx.fillText(gxLab.toFixed(0), pxLab + 2, height - 6)
+            }
+            for (var gyLab = gyStart; gyLab <= gyEnd + 0.001; gyLab += step) {
+                var pyLab = yPx(gyLab)
+                ctx.fillText(gyLab.toFixed(0), 6, pyLab - 4)
+            }
+
+            // Ejes
+            if (showAxes) {
+                ctx.strokeStyle = axisXColor
+                ctx.lineWidth = 1.8
+                ctx.beginPath()
+                ctx.moveTo(0, yPx(0))
+                ctx.lineTo(width, yPx(0))
+                ctx.stroke()
+
+                ctx.strokeStyle = axisYColor
+                ctx.beginPath()
+                ctx.moveTo(xPx(0), 0)
+                ctx.lineTo(xPx(0), height)
+                ctx.stroke()
+
+                ctx.fillStyle = unitColor
+                ctx.font = "11px sans-serif"
+                ctx.fillText(right.toFixed(0), width - 40, yPx(0) - 6)
+                ctx.fillText(top.toFixed(0), xPx(0) + 6, 12)
+            }
+
+            // Polilíneas
+            if (drawPoints && drawPoints.length > 0) {
+                ctx.lineJoin = "round"
+                ctx.lineCap = "round"
+                var current = []
+                var currentFlag = 1
+                function flush() {
+                    if (current.length < 2) return
+                    ctx.beginPath()
+                    ctx.moveTo(xPx(current[0].x), yPx(current[0].y))
+                    for (var j = 1; j < current.length; j++) {
+                        ctx.lineTo(xPx(current[j].x), yPx(current[j].y))
+                    }
+                    var isClosed = Math.hypot(
+                        current[0].x - current[current.length - 1].x,
+                        current[0].y - current[current.length - 1].y
+                    ) < 1e-3
+                    if (isClosed) ctx.closePath()
+                    if (currentFlag === 1) {
+                        ctx.fillStyle = Qt.rgba(0.0, 0.6, 0.0, 0.25)
+                        ctx.strokeStyle = Qt.rgba(0.0, 0.5, 0.0, 0.8)
+                    } else {
+                        ctx.fillStyle = Qt.rgba(1.0, 0.6, 0.0, 0.2)
+                        ctx.strokeStyle = Qt.rgba(1.0, 0.4, 0.0, 0.9)
+                    }
+                    ctx.lineWidth = 2
+                    if (isClosed) ctx.fill()
+                    ctx.stroke()
+                }
+
+                for (var i = 0; i < drawPoints.length; i++) {
+                    var p = drawPoints[i]
+                    if (!p) continue
+                    if (p.break) {
+                        flush()
+                        current = []
+                        currentFlag = 1
+                        continue
+                    }
+                    if (p.x === undefined || p.y === undefined)
+                        continue
+                    currentFlag = p.flag !== undefined ? p.flag : currentFlag
+                    current.push(p)
+                }
+                flush()
+            }
+
+            ctx.restore()
+        }
     }
 }

@@ -1,8 +1,8 @@
-%% --- Función DibujarScaraCnc lista para animación ---
+%% --- Funci  n DibujarScaraCnc lista para animaci  n ---
 function handles = DibujarScaraCnc(ax, pos, handles)
-    % pos = [O; P; A; B] -> O=base, P=prismático, A=brazo1, B=brazo2/efector
+    % pos = [O; P; A; B] -> O=base, P=prism  tico, A=brazo1, B=brazo2/efector
     O = pos(1,:);  % Base
-    P = pos(2,:);  % Esbelon prismático (vertical)
+    P = pos(2,:);  % Esbelon prism  tico (vertical)
     A = pos(3,:);  % Primer brazo
     B = pos(4,:);  % Segundo brazo / efector
 
@@ -14,7 +14,7 @@ function handles = DibujarScaraCnc(ax, pos, handles)
         xlabel(ax,'X [m]'); ylabel(ax,'Y [m]'); zlabel(ax,'Z [m]');
         view(ax,45,30);
 
-        % Primer eslabón prismático (gris)
+        % Primer eslab  n prism  tico (gris)
         handles.prismatic = plot3(ax, [O(1),P(1)], [O(2),P(2)], [O(3),P(3)],'LineWidth',6,'Color',[0.5 0.5 0.5]);
 
         % Primer brazo rotacional (azul)

@@ -1,5 +1,5 @@
 function TrayArt = CinematicaInversa(TrayCart_pos, L1, L2, TrayCart_aux)
-% CINEMATICAINVERSA - Convierte trayectorias cartesianas a ángulos y desplazamientos articulares (P-R-R)
+% CINEMATICAINVERSA - Convierte trayectorias cartesianas a   ngulos y desplazamientos articulares (P-R-R)
 % Entradas:
 %   TrayCart_pos - Nx3 [X Y Z] (metros)
 %   L1, L2       - longitudes de los brazos [m]
@@ -16,29 +16,29 @@ function TrayArt = CinematicaInversa(TrayCart_pos, L1, L2, TrayCart_aux)
         Y = TrayCart_pos(i,2);
         Z = TrayCart_pos(i,3);
         
-        % --- CÁLCULO DE CINEMÁTICA INVERSA (NO CAMBIA) ---
+        % --- C  LCULO DE CINEM  TICA INVERSA (NO CAMBIA) ---
         
-        % 1. Articulación Prismática (d1):
+        % 1. Articulaci  n Prism  tica (d1):
         d1 = Z;
         
-        % 2. Cálculo de ángulos Rotacionales (theta2 y theta3) en el plano XY:
+        % 2. C  lculo de   ngulos Rotacionales (theta2 y theta3) en el plano XY:
         r_sq = X^2 + Y^2;
         r = sqrt(r_sq);
         
         % Ley de Cosenos
         cos_th3 = (r_sq - L1^2 - L2^2) / (2*L1*L2);
         
-        % Límite de alcance
+        % L  mite de alcance
         cos_th3 = min(max(cos_th3,-1),1);  
         
-        % Solución "Codo Abajo" (Elbow-down)
+        % Soluci  n "Codo Abajo" (Elbow-down)
         th3 = atan2(sqrt(1 - cos_th3^2), cos_th3); 
         
-        % 3. Cálculo de theta2 (Ángulo del Hombro)
+        % 3. C  lculo de theta2 (  ngulo del Hombro)
         th2_offset = atan2(L2*sin(th3), L1 + L2*cos(th3));
         th2 = atan2(Y,X) - th2_offset;
         
-        % --- Asignación de la salida P-R-R ---
+        % --- Asignaci  n de la salida P-R-R ---
         % Formato de salida: [d1, theta2, theta3, flag, v]
         
         % Tomamos el FLAG y la VELOCIDAD del cuarto argumento de entrada

@@ -12,6 +12,8 @@ from core.backend import Backend
 
 def main():
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
+    # Permite XMLHttpRequest desde archivos locales en QML (para cargar CSV)
+    os.environ.setdefault("QML_XHR_ALLOW_FILE_READ", "1")
 
     app = QApplication(sys.argv)
     engine = QQmlApplicationEngine()
