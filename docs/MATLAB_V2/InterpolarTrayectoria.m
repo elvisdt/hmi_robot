@@ -74,5 +74,5 @@ function TrayInt = InterpolarTrayectoria(TrayBruta, paso, Z_cut)
             TrayInt = [TrayInt; NaN(1,4)];
         end
     end
-    fprintf('    Se filtraron %d grupos con FLAG=0. Interpolados %d grupos finales (Corte/Guardado).\n', num_grupos_inicial - num_grupos_filtrados, num_grupos_filtrados);
+    fprintf(' Se filtraron %d grupos con FLAG=0. Interpolados %d grupos finales (Corte/Guardado).\n', num_grupos_inicial - num_grupos_filtrados, num_grupos_filtrados);
 end

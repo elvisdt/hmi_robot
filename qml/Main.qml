@@ -136,14 +136,8 @@ ApplicationWindow {
                         onDxfSelected: function(fileUrl) { loadDxfFile(fileUrl) }
                         onCsvSelected: function(fileUrl) { loadCsvFile(fileUrl) }
                         onRobotTrajSelected: function(fileUrl) { robotView.setTrajectoryFile(fileUrl) }
-                        onRobotPlay: {
-                            robotView.play()
-                            viewer2d.startPath()
-                        }
-                        onRobotStop: {
-                            robotView.stop()
-                            viewer2d.stopPath()
-                        }
+                        onRobotPlay: robotView.play()
+                        onRobotStop: robotView.stop()
                         onRobotHome: robotView.goHome()
                         onRobotReset: robotView.resetPose()
                         onRobotSpeedChanged: function(factor) { robotView.setPlaybackSpeed(factor) }
@@ -206,12 +200,20 @@ ApplicationWindow {
     Component.onCompleted: {
         viewer2d.setPoints([])
         robotView.setPlaybackSpeed(controlsPanel.robotSpeedValue)
+        // inicializar brazo 2D con longitudes del robot (mm)
+        viewer2d.updateArm(robotView.angrotacion1, robotView.angrotacion2, robotView.l1mm, robotView.l2mm)
     }
 
     Connections {
         target: robotView
         function onTrajPlayingChanged() {
             controlsPanel.robotPlaying = robotView.trajPlaying
+        }
+        function onAngrotacion1Changed() {
+            viewer2d.updateArm(robotView.angrotacion1, robotView.angrotacion2, robotView.l1mm, robotView.l2mm)
+        }
+        function onAngrotacion2Changed() {
+            viewer2d.updateArm(robotView.angrotacion1, robotView.angrotacion2, robotView.l1mm, robotView.l2mm)
         }
     }
 }

@@ -1,5 +1,5 @@
 """
-Conversor DXF -> TXT/CSV (topologia + color + area), version OOP.
+Conversor DXF -> TXT/CSV (topologia + color + area)
 Clasifica por color/layer, une topologicamente, polygonize y exporta con bandera de corte.
 """
 
@@ -285,7 +285,7 @@ def main():
         "dxf",
         type=str,
         nargs="?",
-        default=str(Path(r"D:\ELVIS\PYTHON\RoboticHMI\docs\dxf_files\UPC-30_ESPECIAL.dxf")),
+        default=str(Path(r"docs\dxf_files\UPC-30_ESPECIAL.dxf")),
         help="Ruta del DXF (por defecto: UPC-30_ESPECIAL.dxf)",
     )
     parser.add_argument(
@@ -297,7 +297,7 @@ def main():
     parser.add_argument(
         "--out",
         type=str,
-        default=str(Path(r"D:\ELVIS\PYTHON\RoboticHMI\docs\trayectorias\UPC-30_ESPECIAL_3D.txt")),
+        default=str(Path(r"docs\trayectorias\UPC-30_ESPECIAL_3D.txt")),
         help="Ruta de salida del TXT (CSV se generara con misma ruta y extension .csv)",
     )
     args = parser.parse_args()

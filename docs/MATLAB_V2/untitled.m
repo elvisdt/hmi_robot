@@ -20,7 +20,7 @@ Speed_cut = 0.08;     % m/s
 Speed_traslado = 0.12;% m/s
 TrayFinal = PlanificarTrayectoria(TrayInt, Z_home*1000, Z_cut*1000, paso, Speed_cut*1000*60, Speed_traslado*1000*60);
 
-% Convertir TrayFinal de mm a m
+% Convertir TrayFinal de mmm
 TrayFinal(:,1:3) = TrayFinal(:,1:3)/1000;
 
 %% --- Cinematica Inversa ---
@@ -87,4 +87,4 @@ for i = 2:skip:length(TrayFinal)
     pause(dt);
 end
 
-disp('    Animacion SCARA-CNC completa.');
+disp(' Animacion SCARA-CNC completa.');

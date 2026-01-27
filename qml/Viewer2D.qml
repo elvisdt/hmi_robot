@@ -20,7 +20,11 @@ Item {
     property real gridStep: 50
     property real marginRatio: 0.05
     property real padFactor: 0.2
-    property int pathPlayIndex: -1
+    property real armL1: 60
+    property real armL2: 58
+    property real armTheta1: 0
+    property real armTheta2: 0
+    property bool showArm: true
     
     property var palette: ({})
     property color cardColor: palette.cardBg || "#ffffff"
@@ -142,7 +146,11 @@ Item {
                     padFactor: view2d.padFactor
                     canvasColor: view2d.canvasColor
                     gridColor: view2d.gridColor
-                    pathIndex: view2d.pathPlayIndex
+                    showArm: view2d.showArm
+                    armL1: view2d.armL1
+                    armL2: view2d.armL2
+                    armTheta1: view2d.armTheta1
+                    armTheta2: view2d.armTheta2
                     
                 }
             }
@@ -186,7 +194,6 @@ Item {
     }
 
     function setPoints(arr) {
-        pathPlayIndex = -1
         if (autoFitBounds && arr && arr.length > 0) {
             var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
             for (var i = 0; i < arr.length; i++) {
@@ -231,45 +238,11 @@ Item {
             canvas.points = arr
     }
 
-    Timer {
-        id: pathTimer
-        interval: 30
-        repeat: true
-        running: false
-        onTriggered: stepPath()
-    }
-
-    function startPath() {
-        var pts = canvas.points || []
-        var flat = []
-        for (var i = 0; i < pts.length; i++) {
-            var p = pts[i]
-            if (!p || p.break || p.x === undefined || p.y === undefined) continue
-            flat.push(p)
-        }
-        if (flat.length === 0) return
-        canvas.pathPoints = flat
-        pathPlayIndex = 0
-        pathTimer.running = true
-        canvas.requestPaint()
-    }
-
-    function stopPath() {
-        pathTimer.running = false
-        pathPlayIndex = -1
-        canvas.requestPaint()
-    }
-
-    function stepPath() {
-        if (pathPlayIndex < 0 || !canvas.pathPoints || canvas.pathPoints.length === 0) {
-            stopPath()
-            return
-        }
-        pathPlayIndex += 1
-        if (pathPlayIndex >= canvas.pathPoints.length) {
-            stopPath()
-            return
-        }
+    function updateArm(theta1, theta2, len1, len2) {
+        armTheta1 = theta1
+        armTheta2 = theta2
+        if (len1 !== undefined) armL1 = len1
+        if (len2 !== undefined) armL2 = len2
         canvas.requestPaint()
     }
 }

@@ -34,7 +34,7 @@ function TrayArt = CinematicaInversa(TrayCart_pos, L1, L2, TrayCart_aux)
         % Solucion "Codo Abajo" (Elbow-down)
         th3 = atan2(sqrt(1 - cos_th3^2), cos_th3); 
         
-        % 3. Calculo de theta2 (angulo del Hombro)
+        % 3. Calculo de theta2 (Angulo del Hombro)
         th2_offset = atan2(L2*sin(th3), L1 + L2*cos(th3));
         th2 = atan2(Y,X) - th2_offset;
         

@@ -31,7 +31,7 @@ Node {
         // Base superior + primer brazo
         Node {
             id: prismatic_axis
-            position.z: robot.movement1
+            position.z: (robot.movement1)/10
             eulerRotation.z: -90
             Node {
                 id: joint1

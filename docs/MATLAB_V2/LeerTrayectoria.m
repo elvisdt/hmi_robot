@@ -26,5 +26,5 @@ function grupos = LeerTrayectoria(filename)
             grupos{end+1} = [X(ini:fin), Y(ini:fin), Z(ini:fin), C(ini:fin)]; %#ok<AGROW>
         end
     end
-    fprintf('     Se detectaron %d grupos en el archivo.\n', numel(grupos));
+    fprintf(' Se detectaron %d grupos en el archivo.\n', numel(grupos));
 end

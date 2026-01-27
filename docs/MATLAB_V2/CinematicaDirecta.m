@@ -8,8 +8,8 @@ function P_Cart = CinematicaDirecta(Q_Art, L1, L2)
 
     % Extraccion de variables articulares
     d1  = Q_Art(1); % Desplazamiento Prismatico (Z)
-    th2 = Q_Art(2); % angulo del hombro
-    th3 = Q_Art(3); % angulo del codo (relativo al hombro)
+    th2 = Q_Art(2); % Angulo del hombro
+    th3 = Q_Art(3); % Angulo del codo (relativo al hombro)
     
     % Posicion del centro del codo (p_codo)
     X_codo = L1 * cos(th2);

@@ -126,7 +126,7 @@ Item {
     function applyStep(idx) {
         if (idx < 0 || idx >= root.trajArt.length) return
         var p = root.trajArt[idx]
-        root.movdistance1 = (p.d1mm)/100
+        root.movdistance1 = p.d1mm
         root.angrotacion1 = p.th2deg
         root.angrotacion2 = p.th3deg
     }
@@ -156,13 +156,13 @@ Item {
         var k = Math.max(1, factor || 1)
         root.playbackSkip = Math.max(1, Math.floor(k))
         root.playbackIntervalMs = Math.max(5, 50 - Math.floor((k - 1) * 5))
-        root.animVelocity = 300 * k
+        root.animVelocity = 1000 * k
     }
 
 
     function goHome() {
         root.stop()
-        root.movdistance1 = 4
+        root.movdistance1 = 40
         root.angrotacion1 = 0
         root.angrotacion2 = 165
         root.trajIndex = 0
@@ -418,12 +418,12 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label { text: "D1:"; color: mutedColor; font.pixelSize: 11;  Layout.preferredWidth: 16}
-                                Label { text: Math.round(movSlider.value,1) + " mm"; color: textColor; font.pixelSize: 12; Layout.preferredWidth: 40 }
+                                Label { text: movSlider.value.toFixed(1) + " mm"; color: textColor; font.pixelSize: 12; Layout.preferredWidth: 40 }
                                 Item { Layout.fillWidth: true }
                                 IOSSlider{
                                     id: movSlider
                                     minValue: 0
-                                    maxValue: 4
+                                    maxValue: 40
                                     step: 0.1
                                     value: movdistance1
                                     onMoved: movdistance1 = value

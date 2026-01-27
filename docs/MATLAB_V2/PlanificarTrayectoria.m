@@ -38,7 +38,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
             V_deseada = V_traslado_ms * ones(nb,1);
             V_deseada(bloque(:,4) == 2) = 0; % FLAG=2 (Reposo) -> V=0
             
-            p_end_safe = bloque(end, 1:3); %  ultimo punto del traslado seguro (a Z_home)
+            p_end_safe = bloque(end, 1:3); % Ultimo punto del traslado seguro (a Z_home)
             
             % ** INSERTAR LA BAJADA VERTICAL (PLUNGE) **
             Z_cut_target = Z_cut; 
@@ -94,7 +94,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
                 Z_down = linspace(Z_home, Z_cut_next, n3)';
                 trans_down = [p_ini(1)*ones(n3-1,1), p_ini(2)*ones(n3-1,1), Z_down(2:end), 3*ones(n3-1,1), V_traslado_ms*ones(n3-1,1)];
                 
-                %  ultimo punto de bajada = inicio de corte (FLAG=1, V=0)
+                % Ultimo punto de bajada = inicio de corte (FLAG=1, V=0)
                 trans_down(end,4) = 1; 
                 trans_down(end,5) = 0; 
             end
@@ -139,7 +139,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     end
 
 % --------------------------------------------------------------------------------
-%       Aplicacion del Perfil de Velocidad Trapezoidal (Seccion 3)
+%   Aplicacion del Perfil de Velocidad Trapezoidal (Seccion 3)
 % --------------------------------------------------------------------------------
 
     V_deseada = TrayFinal(:, 5);
@@ -186,7 +186,7 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     TrayFinal(:, 5) = V_perfilada;
     
 % --------------------------------------------------------------------------------
-%       Conversion y Limpieza Final (Seccion 4)
+%   Conversion y Limpieza Final (Seccion 4)
 % --------------------------------------------------------------------------------
 
     % Conversion de [mm] a [m] para las coordenadas
@@ -197,5 +197,5 @@ function TrayFinal = PlanificarTrayectoria(TrayInt, Z_home, Z_cut, paso, Speed_c
     TrayFinal(~isfinite(TrayFinal(:,5)),5) = vmin;
     TrayFinal(TrayFinal(:,5) < vmin,5) = vmin;
     
-    fprintf('    Trayectoria final planificada y perfilada (m y m/s). V_cut=%g m/s, V_traslado=%g m/s. A_max=%g m/s^2\n', V_cut_ms, V_traslado_ms, A_max_ms2);
+    fprintf(' Trayectoria final planificada y perfilada (m y m/s). V_cut=%g m/s, V_traslado=%g m/s. A_max=%g m/s^2\n', V_cut_ms, V_traslado_ms, A_max_ms2);
 end

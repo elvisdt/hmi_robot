@@ -25,10 +25,14 @@ Item {
     property real axisMaxX: 300
     property real axisMinY: -300
     property real axisMaxY: 300
-    property int pathIndex: -1
-    property var pathPoints: []
     property real rotationDeg: 0
     property real minSpan: 50
+    // Overlay de brazo 2D
+    property bool showArm: false
+    property real armL1: 60
+    property real armL2: 58
+    property real armTheta1: 0   // grados
+    property real armTheta2: 0
 
     Layout.fillWidth: true
     Layout.fillHeight: true
@@ -240,13 +244,13 @@ Item {
                     ) < 1e-3
                     if (isClosed) ctx.closePath()
                     if (currentFlag === 1) {
-                        ctx.fillStyle = Qt.rgba(0.0, 0.6, 0.0, 0.25)
-                        ctx.strokeStyle = Qt.rgba(0.0, 0.5, 0.0, 0.8)
+                        ctx.fillStyle = Qt.rgba(0.1, 0.4, 0.9, 0.2)
+                        ctx.strokeStyle = Qt.rgba(0.1, 0.4, 0.9, 0.9)
                     } else {
-                        ctx.fillStyle = Qt.rgba(1.0, 0.6, 0.0, 0.2)
-                        ctx.strokeStyle = Qt.rgba(1.0, 0.4, 0.0, 0.9)
+                        ctx.fillStyle = Qt.rgba(0.95, 0.4, 0.02, 0.2)
+                        ctx.strokeStyle = Qt.rgba(0.95, 0.4, 0.02, 0.9)
                     }
-                    ctx.lineWidth = 2
+                    ctx.lineWidth = 1
                     if (isClosed) ctx.fill()
                     ctx.stroke()
                 }
@@ -268,12 +272,30 @@ Item {
                 flush()
             }
 
-            // Punto animado (recorrido)
-            if (pathIndex >= 0 && pathPoints && pathPoints.length > pathIndex) {
-                var pt = pathPoints[pathIndex]
+            // Brazo 2D (opcional)
+            if (showArm) {
+                var th1 = armTheta1 * Math.PI / 180
+                var th2 = armTheta2 * Math.PI / 180
+                var j1x = armL1 * Math.cos(th1)
+                var j1y = armL1 * Math.sin(th1)
+                var endx = j1x + armL2 * Math.cos(th1 + th2)
+                var endy = j1y + armL2 * Math.sin(th1 + th2)
+                ctx.strokeStyle = '#960365'
+                ctx.lineWidth = 3
                 ctx.beginPath()
-                ctx.fillStyle = palette.accent || "#00c853"
-                ctx.arc(xPx(pt.x), yPx(pt.y), 4, 0, Math.PI * 2)
+                ctx.moveTo(xPx(0), yPx(0))
+                ctx.lineTo(xPx(j1x), yPx(j1y))
+                ctx.lineTo(xPx(endx), yPx(endy))
+                ctx.stroke()
+                ctx.fillStyle = '#ad960365'
+                ctx.beginPath()
+                ctx.arc(xPx(0), yPx(0), 4, 0, Math.PI * 2)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.arc(xPx(j1x), yPx(j1y), 4, 0, Math.PI * 2)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.arc(xPx(endx), yPx(endy), 4, 0, Math.PI * 2)
                 ctx.fill()
             }
 

@@ -101,4 +101,4 @@ AnimarTrayectoria(TrayArt, L1, L2);
 %     drawnow limitrate;
 % end
 % 
-% disp('    Animacion SCARA-P-R-R completa con robot y trayectoria.');
+% disp(' Animacion SCARA-P-R-R completa con robot y trayectoria.');
